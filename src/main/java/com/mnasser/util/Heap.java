@@ -39,16 +39,6 @@ public class Heap<K> implements Iterable<K>{
 		this.returnMax = returnMax;
 	}
 	
-//	/** Holder class to wrap keys and elements **/
-//	public static final class Entry<K, E>{
-//		public final K key;
-//		public final E element;
-//		public Entry(K k, E e){
-//			key = k;
-//			element = e;
-//		}
-//	}
-	
 	// our heap will be in array form. We'll use math to detect positions of 
 	// children and parents
 	private List<K> heap = new ArrayList<K>();
@@ -56,8 +46,6 @@ public class Heap<K> implements Iterable<K>{
 	private int maxIndex = 0; 
 	
 	public synchronized void insert(K key){ //, E element){
-		//Entry<K,E> e = new Entry<K,E>(key, element);
-		
 		heap.add( maxIndex, key ); // insert at the end of the array ( last open leaf in the tree)
 		
 		bubbleUp( maxIndex ); // move it up the tree if need be
@@ -118,13 +106,6 @@ public class Heap<K> implements Iterable<K>{
 	 */
 	protected int compare( K parent, K child ){
 		return comp.compare(parent, child);
-//		switch( comp.compare(parent, child)) {
-//		case -1 :
-//		case 0  :
-//			return false;
-//		default :
-//			return true;
-//		}
 	}
 	
 	/**
@@ -140,8 +121,10 @@ public class Heap<K> implements Iterable<K>{
 		
 		maxIndex--;
 		K lastLeaf = heap.remove( maxIndex );
-		heap.set( 0 , lastLeaf ); // massive promotion
-		bubbleDown( 0 ); // push down until it rests at a location that maintains heap invariant
+		if ( ! heap.isEmpty() ) {
+			heap.set( 0 , lastLeaf );  // massive promotion 
+			bubbleDown( 0 ); // push down until it rests at a location that maintains heap invariant
+		}
 		
 		return root;
 	}
@@ -246,10 +229,6 @@ public class Heap<K> implements Iterable<K>{
 	
 	
 	
-	
-	
-	
-	
 	public static void print(Heap<? extends Comparable<?>> h){
 		System.out.print("[");
 		for( Comparable<?> c : h.heap ){
@@ -259,58 +238,6 @@ public class Heap<K> implements Iterable<K>{
 	}
 	
 	public static void main(String[] args) {
-		System.out.println( "0 -> " + Heap.getFirstChild(0));
-		System.out.println( "0 -> " + (Heap.getFirstChild(0) + 1) );
-		System.out.println( "1 -> " + Heap.getFirstChild(1));
-		System.out.println( "1 -> " + (Heap.getFirstChild(1) + 1) );
-		System.out.println( "2 -> " + Heap.getFirstChild(2));
-		System.out.println( "2 -> " + (Heap.getFirstChild(2) + 1) );
-		
-		System.out.println( Heap.getParent(1) + " -> 1");
-		System.out.println( Heap.getParent(2) + " -> 2");
-		System.out.println( Heap.getParent(3) + " -> 3");
-		System.out.println( Heap.getParent(4) + " -> 4");
-		System.out.println( Heap.getParent(5) + " -> 5");
-		System.out.println( Heap.getParent(6) + " -> 6");
-		
-		Heap<Integer> h = new Heap<Integer>(new Comparator<Integer>(){public int compare(Integer o1, Integer o2) {
-			return o1.compareTo(o2);
-		}}  ,   true );
-		
-		h.insert( 13 );
-		h.insert( 13 );
-		h.insert( 13 );
-		h.insert( 13 );
-		h.insert( 3 );
-		h.insert( 5 );
-		
-		print(h);
-		
-		h.insert( 1 );
-		print(h);
-		
-		h.insert( 2 );
-		print(h);
-		
-		System.out.println( h.removeRoot() );
-		print(h);
-		
-		System.out.println( h.removeRoot() );
-		print(h);
-		
-		h.insert( 13 );
-		print(h);
-		
-		System.out.println( h.removeRoot() );
-		print(h);
-		
-
-		h.insert( 1 );
-		print(h);
-		
-		System.out.println( h.removeRoot() );
-		print(h);
-		
 	}
 	
 }

@@ -1,7 +1,6 @@
 package com.mnasser.graph;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.mnasser.graph.Graph.Edge;

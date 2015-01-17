@@ -6,8 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.mnasser.graph.Graph.Edge;
@@ -29,12 +28,12 @@ public class KruskalMSTTest {
 		G.addEdge( new Edge( new Vertex(1), new Vertex(2) , 1) );
 		G.addEdge( new Edge( new Vertex(1), new Vertex(3) , 5) );
 		G.addEdge( new Edge( new Vertex(1), new Vertex(4) , 3) );
-		G.addEdge( new Edge( new Vertex(1), new Vertex(5) , 4) );
+		G.addEdge( new Edge( new Vertex(1), new Vertex(5) , 3) );
 		
 		G.addEdge( new Edge( new Vertex(2), new Vertex(3) , 7) );
 		G.addEdge( new Edge( new Vertex(3), new Vertex(4) , 6) );
 		G.addEdge( new Edge( new Vertex(4), new Vertex(5) , 2) );
-		
+
 		System.out.println(G);
 		
 		Graph T = KruskalMST.findMST(G);
@@ -94,20 +93,22 @@ public class KruskalMSTTest {
 		}
 		System.out.println(cnt + " total lines read.");
 		System.out.println(G.toInfoLine());
+		br.close();
 		return G;
 	}
 	
 	@Test
 	public void randomTest(){
-		Graph G = Graph.makeRandomGraph( 100000 );
+		Graph G = Graph.makeRandomGraph( 1_000_000 );
 		System.out.println( G.toInfoLine() );
 		
 		Graph T = KruskalMST.findMST( G );
+		
 		System.out.println( T.toInfoLine() );
 		
-		int total_cost = 0;
-		for( Edge e : T.getEdges() )
-			total_cost += e.cost();
+		long total_cost = T.getEdges().stream().mapToInt( e -> e.cost() ).sum();
+		//for( Edge e : T.getEdges() )
+		//	total_cost += e.cost();
 		
 		System.out.println("Total cost of MST  : " + total_cost);
 	}

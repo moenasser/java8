@@ -1,6 +1,7 @@
 package com.mnasser.graph;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import com.mnasser.graph.Graph.Edge;
 import com.mnasser.graph.Graph.Vertex;
@@ -40,7 +41,7 @@ public class KruskalMST {
 		Graph T = new AdjacencyListGraph();
 		
 		//Ranked edges by their costs
-		Heap<Edge> edgeHeap = new Heap<Edge>(Graph.getEdgeComparator());
+		Heap<Edge> edgeHeap = new Heap<Edge>( Comparator.comparingInt( e -> e.cost() ));
 		
 		long start = System.currentTimeMillis();
 		
@@ -52,8 +53,10 @@ public class KruskalMST {
 			e.dst.visited = false;
 			e.src.leaderPointer = e.src; // each has itself as leader pointer
 			e.dst.leaderPointer = e.dst; // ie, its own cluster of 1
-			if (e.src.followers==null) e.src.followers = new ArrayList<Vertex>();
-			if (e.dst.followers==null) e.dst.followers = new ArrayList<Vertex>();
+			e.src.followers = null;
+			e.dst.followers = null;
+			//if (e.src.followers==null) e.src.followers = new ArrayList<Vertex>();
+			//if (e.dst.followers==null) e.dst.followers = new ArrayList<Vertex>();
 		}
 		
 		long lap = System.currentTimeMillis();
@@ -103,26 +106,42 @@ public class KruskalMST {
 	 * 1 by updating all leader pointers of each group.*/
 	protected static void union(Vertex v, Vertex u){
 		Vertex leader = null , follower = null;
-		if( v.followers.size() >= u.followers.size() ){
+		if( getFollowerSize(v) >= getFollowerSize(u) ){
 			leader = v;  follower = u;
 		}else{
 			leader = u;  follower = v;
 		}
+		
+		if ( leader.followers == null )
+			leader.followers = new ArrayList<Vertex>();
+		
 		//Vertex leader = (v.followers.size() >= u.followers.size())? v : u;
 		//Vertex follower = (u.followers.size() < v.followers.size() )? u : v;
 		
 		// NOTE: This will create a "flat" tree of followers 1-level below the leader
 		// For Lazy-Union-Find you would allow multiple levels.
-		for( Vertex f : follower.followers ){
-			f.leaderPointer = leader;
-			f.followers.clear(); // for Lazy-Union-Find, allow follower to retain followers
+		if( follower.followers != null ){
+			
+			for( Vertex f : follower.followers ){
+				f.leaderPointer = leader;
+				if( f.followers != null ) { 
+					f.followers.clear(); // for Lazy-Union-Find, allow follower to retain followers
+					f.followers = null; // clear memory
+				}
+			}
+			
+			leader.followers.addAll(follower.followers);
+			follower.followers.clear();
+			follower.followers = null;
 		}
 		
-		leader.followers.addAll(follower.followers);
 		leader.followers.add( follower );
-		follower.followers.clear();
 		follower.leaderPointer = leader;
 		// TODO : how do we find all followers beneath a leader vertex?
 		// TODO : must add follower array to each vertex
+	}
+	
+	protected static int getFollowerSize(Vertex v){
+		return ( v.followers == null )? 0 : v.followers.size(); 
 	}
 }

@@ -5,8 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.mnasser.graph.Graph.Edge;
@@ -25,7 +24,7 @@ public class MinimumCutsTest {
 		for( Edge e : G.getEdges()) 
 			edgeCounter.put(e, 0);
 		for( int ii = 0; ii < 10000; ii ++){
-			Edge e = Graph.chooseRandomEdge(G);
+			Edge e = Graph.getRandomEdge(G);
 			if(!edgeCounter.containsKey(e))edgeCounter.put(e, 0);
 			edgeCounter.put(e, edgeCounter.get(e)+1);
 		}
@@ -52,7 +51,7 @@ public class MinimumCutsTest {
 	public void testRemoveRandomEdge() throws Exception {
 		Graph g = Graph.makeRandomGraph(5);
 		
-		Edge e = Graph.chooseRandomEdge(g);
+		Edge e = Graph.getRandomEdge(g);
 		Assert.assertTrue( g.hasEdge(e) );
 		
 		g.removeEdge(e);
@@ -66,7 +65,7 @@ public class MinimumCutsTest {
 	public void testRemoveRandomVertex() throws Exception {
 		Graph g = Graph.makeRandomGraph(5);
 		
-		Vertex a = Graph.chooseRandomVertex(g);
+		Vertex a = Graph.getRandomVertex(g);
 		Assert.assertTrue(g.hasVertex(a));
 		
 		List<Vertex> neighbors = new ArrayList<Vertex>();

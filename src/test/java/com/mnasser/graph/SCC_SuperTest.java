@@ -35,6 +35,8 @@ public class SCC_SuperTest {
 		long end = System.currentTimeMillis();
 		System.out.println("... done loading " + cnt + " edges");
 		System.out.println("Loaded in " + (end-start)/1000 + "sec");
+		
+		br.close();
 		return g;
 	}
 	

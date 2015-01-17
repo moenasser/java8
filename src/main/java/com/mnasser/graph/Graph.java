@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A generic representation of a graph.  It consists of edges E and vertices V.
@@ -20,13 +22,8 @@ public abstract class Graph {
 	/**Factory method returning a simple comparator which uses edge costs
 	 * to determine ordering. */
 	public static Comparator<Edge> getEdgeComparator(){
-		return new Comparator<Edge>() {
-			@Override
-			public int compare(Edge o1, Edge o2) {
-				int cost1 = o1.cost(),  cost2 = o2.cost();
-				return (cost1 < cost2)? -1 : (cost1==cost2)? 0 : 1 ;
-			}
-		};
+		// Use lambda shorthand to let jvm know we should compare on the int cost of an edge 
+		return Comparator.comparingInt( (Edge e) -> e.cost() );
 	}
 	
 	public abstract List<Vertex> getVertices();
@@ -101,26 +98,36 @@ public abstract class Graph {
 		/**Given another vertex <code>b</code> returns the edge
 		 * incident on both us and <code>b</code>.  Returns null otherwise.*/
 		public Edge getEdge(Vertex b){
-			for( Edge e : edges ){
-				if( b.equals( e.otherSide(this)) )
-					return e;
-			}
-			return null;
+			return edges.stream()
+				.filter( e -> e.otherSide(this).equals( b ) )
+				.findFirst()
+				.orElse(null);
+			//	for( Edge e : edges ){
+			//		if( b.equals( e.otherSide(this)) )
+			//			return e;
+			//	}
+			//	return null;
 		}
 		/**Returns a copy of all edges incident on this vertex */
 		public List<Edge> getEdges(){
+			return edges.stream().collect( Collectors.toList() );
 			// make copy
-			List<Edge> l = new ArrayList<Edge>();
-			l.addAll(edges);
-			return l;
+			//	List<Edge> l = new ArrayList<Edge>();
+			//	l.addAll(edges);
+			//	return l;
 		}
 		/**Given an edge <code>e</code> returns the vertex opposite us on the 
 		 * other side of <code>e</code>. */
 		public Vertex getNeighbor(Edge e){
-			if( hasEdge(e) ){
-				return e.otherSide(this);
-			}
-			return null;
+			return edges.stream()
+				.filter( myE -> myE.equals(e) )
+				.findFirst()
+				.map( myE -> myE.otherSide(this) )
+				.orElse(null);
+			//	if( hasEdge(e) ){
+			//		return e.otherSide(this);
+			//	}
+			//	return null;
 		}
 		boolean hasEdge(Edge e){
 			return edges.contains(e);
@@ -133,6 +140,16 @@ public abstract class Graph {
 		/**Returns true iff there is an edge incident on both this vertex 
 		 * and <code>b</code>*/
 		boolean hasNeighbor(Vertex b){
+			/*
+			 * Causes ConcurrentModificationException if we create  a loop of the form :
+			 * 
+			 * for( Edges e : edges )
+			 * 		e.hasNeighbor( b );   // hasNeighbor() loops over edges as a stream.
+			 * 
+			 */ 
+			//	return edges
+			//			.stream()
+			//			.anyMatch( e -> b.equals(e.otherSide(this)) );
 			for(Edge e : edges){
 				if( b.equals( e.otherSide(this) ))
 					return true;
@@ -142,33 +159,43 @@ public abstract class Graph {
 		/**Returns the number of edges incident on both this vertex and on
 		 * the given vertex <code>b</cdoe>*/
 		int numEdges(Vertex b ){
-			if( b == null )	return 0; 
-			int ii = 0;
-			for(Edge e : edges){
-				if( e.otherSide(this).equals(b) ) 
-					ii ++;
-			}
-			return ii;
+			return ( b == null ) ?	0 : 
+				edges.stream()
+				.filter( e -> e.otherSide(b) == this )
+				.mapToInt(e->1)
+				.sum();
+			//	int ii = 0;
+			//	for(Edge e : edges){
+			//		if( e.otherSide(this).equals(b) ) 
+			//			ii ++;
+			//	}
+			//	return ii;
 		}
 		/**Returns a list of all edges where this vertex is a source vertex. */
 		List<Edge> getOutBound(){
-			List<Edge> out = new ArrayList<Edge>();
-			for( Edge e : edges ){
-				if( e.src.equals(this) && ! e.dst.equals(this) ){
-					out.add(e);
-				}
-			}
-			return out;
+			return edges.stream()
+					.filter( e -> e.src == this && e.dst != this )
+					.collect(Collectors.toList());
+			//	List<Edge> out = new ArrayList<Edge>();
+			//	for( Edge e : edges ){
+			//		if( e.src.equals(this) && ! e.dst.equals(this) ){
+			//			out.add(e);
+			//		}
+			//	}
+			//	return out;
 		}
 		/**Returns a list of all edges where this vertex is a destination vertex.*/
 		List<Edge> getInBound(){
-			List<Edge> in = new ArrayList<Edge>();
-			for( Edge e : edges ){
-				if( ! e.src.equals(this) && e.dst.equals(this) ){
-					in.add(e);
-				}
-			}
-			return in;
+			return edges.stream()
+					.filter( e -> (e.dst == this &&  e.src != this) )
+					.collect( Collectors.toList() );
+			//	List<Edge> in = new ArrayList<Edge>();
+			//	for( Edge e : edges ){
+			//		if( ! e.src.equals(this) && e.dst.equals(this) ){
+			//			in.add(e);
+			//		}
+			//	}
+			//	return in;
 		}
 		/**Returns true if this vertex has been visited.*/
 		boolean isVisited(){ return this.visited; }
@@ -314,21 +341,6 @@ public abstract class Graph {
 			*/
 		}
 	}
-	/**Returns a randomly selected edge from graph <code>G</code>. */
-	public static Edge chooseRandomEdge(Graph G){
-		int esize = G.getEdges().size();
-		if( esize == 0 ) throw new RuntimeException("Attempt to choose an edge from graph w/ no edges!");//return null;
-		int idx = (int)(Math.random() * esize) % esize;
-		return G.getEdges().get(idx);
-	}
-	/**If graph <code>G</code> is no empty, returns a randomly selected vertex */
-	public static Vertex chooseRandomVertex(Graph G){
-		int esize = G.getVertices().size();
-		if( esize == 0 )throw new RuntimeException("Attempt to choose a vertex from empty graph!");
-		int idx = (int)(Math.random() * esize) % esize;
-		return G.getVertices().get(idx);
-	}
-	
 
 	
 	public String toAdjListString() {
@@ -350,6 +362,7 @@ public abstract class Graph {
 	@Override
 	public String toString(){
 		return toMatrixString() +  toAdjListString();
+		//return toAdjListString();
 	}
 	protected String toInfoLine(){
 		StringBuilder sb = new StringBuilder();
@@ -369,7 +382,8 @@ public abstract class Graph {
 			sb.append(ii.id + " :\t|");
 			for( Vertex jj : getVertices() ){
 				sb.append(' ');
-				if( hasEdge(ii, jj) ){
+				//if( hasEdge(ii, jj) ){
+				if( ii.hasNeighbor(jj) ){
 					Edge e = getEdge(ii, jj);
 					if( ii.equals(e.src) || ! isDirected() )
 						sb.append('X');
@@ -392,12 +406,42 @@ public abstract class Graph {
 	 * @return pseudorandom number between -1,000 and 1,0000.
 	 */
 	public static int getRandomCost(){
+		return RAND.nextInt() % 1000;
 		// random number [0-999)  ...  random sign
 		//return RAND.nextInt(1000) * (int)(Math.pow( -1.0 , ( RAND.nextInt(2)+1) ));
-		return RAND.nextInt() % 1000;
 	}
 	
 
+	/**Returns a randomly selected edge from graph <code>G</code>. */
+	public static Edge getRandomEdge(Graph G){
+		int esize = G.getEdges().size();
+		if( esize == 0 ) throw new RuntimeException("Attempt to choose an edge from graph w/ no edges!");//return null;
+
+		//int idx = (int)(Math.random() * esize) % esize;
+		return G.getEdges().get( RAND.nextInt(esize) );
+	}
+	/**If graph <code>G</code> is no empty, returns a randomly selected vertex */
+	public static Vertex getRandomVertex(Graph G){
+		int esize = G.getVertices().size();
+		if( esize == 0 )throw new RuntimeException("Attempt to choose a vertex from empty graph!");
+		
+		//int idx = (int)(Math.random() * esize) % esize;
+		return G.getVertices().get( RAND.nextInt(esize) );
+	}
+	/**If graph <code>G</code> is not empty, returns a randomly selected vertex that is NOT <code>a</code>*/
+	public static Vertex getRandomVertexOther(Graph G, Vertex a){
+		int esize = G.getVertices().size();
+		if( esize == 0 )throw new RuntimeException("Attempt to choose a vertex from empty graph!");
+		if( esize == 1 )throw new RuntimeException("Attempt to choose a different vertex from graph with only 1 entry!");
+		Vertex b;
+		do {
+			//int idx = (int)(Math.random() * esize) % esize;
+			b = G.getVertices().get( RAND.nextInt(esize) );
+		}while ( a == b );
+		return b;
+	}
+
+	
 	/**
 	 * Attempts to construct a graph with at least {@code vertexSize} 
 	 * vertices. 
@@ -410,35 +454,55 @@ public abstract class Graph {
 	public static Graph makeRandomGraph(int vertexSize){
 		long start = System.currentTimeMillis();
 		AdjacencyListGraph G = new AdjacencyListGraph(vertexSize);
-		for( int ii =0; ii< vertexSize ; ii++){
-			G.addVertex(); 
-		}
+		
+		Stream<Vertex> vertGen = Stream.generate( () -> new Vertex(G.makeAnId()) );
+		vertGen = vertGen
+			.limit(vertexSize);
+			//.parallel()         // parallel() slows it down since they are threads just hammering G all at once
+			//.skip( 10_000 )
+			//.unordered()
+			//if( vertexSize > 10_000 ) 
+			//	vertGen = vertGen.parallel();
+		
+		vertGen
+			.forEach( v -> G.addVertex( v ) );
+		
 		long nodes = System.currentTimeMillis();
 		
 		// Make connections to every node
-		//while ( G.hasDisjointNodes() ){
-		for( int ii = 0 ; ii < vertexSize ; ii++ ) {
-			//Vertex a = G.getVertices().get( (int)(Math.random()*vertexSize)  );
-			//Vertex a = G.getVertex( RAND.nextInt(vertexSize) + 1  );
-			Vertex a = G.getVertex(ii + 1);
-			Vertex b;
-			do {
-				b = G.getVertex( RAND.nextInt(vertexSize) + 1  );
-			}while( a == b  ||  G.hasEdge( a, b )  ); 
+		G.getVertices().stream()
+			.forEach( a -> {
+				Vertex b;
+				do {
+					b = //G.getVertex( RAND.nextInt(vertexSize) + 1  );
+						Graph.getRandomVertexOther( G , a );
+				}while( G.hasEdge( a, b )  ); 
 			
-			G.addEdge(  new Edge( a, b, Graph.getRandomCost() )  );
-		}
+				G.addEdge(  new Edge( a, b, Graph.getRandomCost() )  );
+				
+			});
+//		for( int ii = 0 ; ii < vertexSize; ii++ ) {
+//			Vertex a = G.getVertex(ii + 1);
+//			Vertex b;
+//			do {
+//				b = G.getVertex( RAND.nextInt(vertexSize) + 1  );
+//			}while( a == b  ||  G.hasEdge( a, b )  ); 
+//			
+//			G.addEdge(  new Edge( a, b, Graph.getRandomCost() )  );
+//		}
 		long edges = System.currentTimeMillis();
 
 		// Make a bunch of random edges
 		int rand_edges = vertexSize / 2;
 		for( int ii = 0 ; ii < rand_edges ; ii++ ) {
 		//while( G.hasDisjointNodes() ) {
-			Vertex a = G.getVertex( RAND.nextInt(vertexSize) + 1 );
+			Vertex a = //G.getVertex( RAND.nextInt(vertexSize) + 1 );
+					Graph.getRandomVertex( G );
 			Vertex b;
 			do {
-				b = G.getVertex( RAND.nextInt(vertexSize) + 1);
-			}while( a == b  ||  G.hasEdge( a, b )  ); 
+				b = //G.getVertex( RAND.nextInt(vertexSize) + 1);
+					Graph.getRandomVertexOther( G , a );
+			}while( G.hasEdge( a, b )  ); 
 			
 			G.addEdge(  new Edge( a, b, Graph.getRandomCost() )  );
 		}
@@ -446,17 +510,28 @@ public abstract class Graph {
 
 		
 		// Find any lonely singleton nodes... 
-		for( Vertex a : G.getVertices() ) {
-			if( a.getEdges().isEmpty() ){ // ...disjoint? Give him a hug ... 
-				Vertex b;
-				do {
-					// find any random other node 
-					b = G.getVertex( RAND.nextInt(vertexSize) + 1 );
-				}while ( a == b  ); // (no, can't hug ourselves)
-				
-				G.addEdge( new Edge( a, b , Graph.getRandomCost() ) );
-			}
-		}
+//		for( Vertex a : G.getVertices() ) {
+//			if ( a.edges.isEmpty() ) {
+//			//if( a.getEdges().isEmpty() ){ // ...disjoint? Give him a hug ... 
+//				Vertex b;
+//				do {
+//					// find any random other node 
+//					b = //G.getVertex( RAND.nextInt(vertexSize) + 1 );
+//						Graph.chooseRandomVertex( G );
+//				}while ( a == b  ); // (no, can't hug ourselves)
+//				
+//				G.addEdge( new Edge( a, b , Graph.getRandomCost() ) );
+//			}
+//		}
+		List<Edge> moreEdges = G.getVertices().stream()
+			.filter( a -> a.edges.isEmpty() )
+			.map( a -> new Edge( a , Graph.getRandomVertexOther(G , a) , Graph.getRandomCost()) )
+			//.forEach(  e -> G.addEdge( e ) );   // ConcurrentModificationException
+			.collect( Collectors.toList());
+		
+		for( Edge me : moreEdges )
+			G.addEdge( me );
+		
 		long singles = System.currentTimeMillis();
 		
 		System.out.println();
@@ -468,4 +543,5 @@ public abstract class Graph {
 
 		return G;
 	}
+	
 }
