@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.text.NumberFormat;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -99,18 +100,74 @@ public class KruskalMSTTest {
 	
 	@Test
 	public void randomTest(){
-		Graph G = Graph.makeRandomGraph( 1_000_000 );
+		int N = 3_000_000; // 1_000_000;
+		Graph G = Graph.makeRandomGraph( N  );
 		System.out.println( G.toInfoLine() );
 		
 		Graph T = KruskalMST.findMST( G );
 		
 		System.out.println( T.toInfoLine() );
 		
-		long total_cost = T.getEdges().stream().mapToInt( e -> e.cost() ).sum();
-		//for( Edge e : T.getEdges() )
-		//	total_cost += e.cost();
+		long total_cost = 0 ;
+		long timeOld = 0, timeStream = 0, timeParallelStream = 0;
 		
-		System.out.println("Total cost of MST  : " + total_cost);
+		// take timings. reapeat upto 10 times. use last values 
+		for ( int cycles = 0 ; cycles < 10 ; cycles ++ ){
+			total_cost = 0;
+			
+			long start = System.nanoTime();
+			for( Edge e : T.getEdges() )   // as N gets higher ... the old way wins out
+				total_cost += e.cost();
+			timeOld += System.nanoTime() - start;
+			
+			start = System.nanoTime();     // faster for N between [10K-100K]. Break even ~75k. Slower after 
+			total_cost = T.getEdges().stream().mapToInt( e -> e.cost() ).sum();
+			timeStream += System.nanoTime() - start;
+			
+			start = System.nanoTime();     // Always slower than old way. Faster than stream() when N > ~1 million
+			total_cost = T.getEdges().parallelStream().mapToInt( e -> e.cost() ).sum();
+			timeParallelStream += System.nanoTime() - start;
+		}
+		System.out.println("Time to sum() all costs old way             : " + (timeOld/10.0)/1_000_000 + "ms");
+		System.out.println("Time to sum() all costs w/ Streams          : " + (timeStream/10.0)/1_000_000 + "ms");
+		System.out.println("Time to sum() all costs w/ Parallel Streams : " + (timeParallelStream/10.0)/1_000_000 + "ms");
+		System.out.println("Total cost of MST  : " + NumberFormat.getInstance().format(total_cost) );
 	}
 
+	/*  Sample results for above : 
+	 * 
+	 *  N = 3,000,000 nodes
+	 *  
+	Time to fill nodes        : 5528ms
+	Time random edges         : 10688ms
+	Time more random edges    : 2324ms
+	Time connect single nodes : 63ms
+	
+	Total Vertices = 3000000. Total Edges = 4500000
+	Time to prep G : 1031
+	Time to find MST : 19569
+	Total Vertices = 3000000. Total Edges = 2999999
+	Time to sum() all costs old way : 363.50519799999995ms
+	Time to sum() all costs w/ Streams : 1148.59149ms
+	Time to sum() all costs w/ Parallel Streams : 522.390404ms
+	Total cost of MST  : -846,383,096
+	
+	 *
+	 * N = 3,000  nodes
+	 * 	
+	Time to fill nodes        : 469.4468ms
+	Time random edges         : 101.19013ms
+	Time more random edges    : 25.08681ms
+	Time connect single nodes : 90.73857ms
+	
+	Total Vertices = 3000. Total Edges = 4500
+	Time to prep G   : 6.582416ms
+	Time to find MST : 11.536563ms
+	Total Vertices = 3000. Total Edges = 2999
+	Time to sum() all costs old way             : 0.37408020000000003ms
+	Time to sum() all costs w/ Streams          : 0.5013531ms
+	Time to sum() all costs w/ Parallel Streams : 16.153909300000002ms
+	Total cost of MST  : -822,480
+
+	 */
 }

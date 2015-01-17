@@ -43,7 +43,7 @@ public class KruskalMST {
 		//Ranked edges by their costs
 		Heap<Edge> edgeHeap = new Heap<Edge>( Comparator.comparingInt( e -> e.cost() ));
 		
-		long start = System.currentTimeMillis();
+		long start = System.nanoTime();
 		
 		//Initialization ...
 		//Add edges to heap. (TODO : create "heapify" batch loading method)
@@ -59,10 +59,10 @@ public class KruskalMST {
 			//if (e.dst.followers==null) e.dst.followers = new ArrayList<Vertex>();
 		}
 		
-		long lap = System.currentTimeMillis();
-		System.out.println("Time to prep G : " + (lap - start) );
+		long lap = System.nanoTime();
+		System.out.println("Time to prep G   : " + (lap - start)/1_000_000.0  + "ms" );
 		
-		start = System.currentTimeMillis();
+		start = System.nanoTime();
 		
 		//begin our loop by adding in edges and adjusting leader pointers
 		while ( edgeHeap.size() > 0 ) {
@@ -88,8 +88,8 @@ public class KruskalMST {
 				break; // All vertices have been added to the MST. So stop early
 		}
 		
-		lap  = System.currentTimeMillis();
-		System.out.println("Time to find MST : " + (lap - start));
+		lap  = System.nanoTime();
+		System.out.println("Time to find MST : " + (lap - start)/1_000_000.0  + "ms");
 		
 		return T;
 	}
