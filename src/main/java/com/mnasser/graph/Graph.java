@@ -307,7 +307,7 @@ public abstract class Graph {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + (src.hashCode() + dst.hashCode());
-			//result = prime * result + ((tail == null) ? 0 : tail.hashCode());
+			result = prime * result + cost; //+ ((tail == null) ? 0 : tail.hashCode());
 			return result;
 		}
 		@Override

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Generic, binary tree implementation of a heap.
@@ -26,31 +27,99 @@ import java.util.List;
  */
 public class Heap<K> implements Iterable<K>{
 	
+	public static enum HEAP { 
+		MAX_HEAP(true) , 
+		MIN_HEAP(false);
+		
+		private final boolean type;
+		HEAP(boolean b) { type = b;}
+		public boolean toBoolean(){ return type; }
+	};
+	
+	
 	protected Comparator<K> comp = null;
 	private final boolean returnMax;
+	private int maxCapacity = Integer.MAX_VALUE;
 	
+	/**Creates a heap returning minimums with the given K comparator allowing no more than 
+	 * maxCapacity elements to be inserted*/
+	public Heap(Comparator<K> comparator, int maxCapacity){
+		this(comparator, HEAP.MIN_HEAP, maxCapacity);
+	}
 	// Returns minimum values using the given comparator to determine minimalness
 	public Heap(Comparator<K> comparator){
-		this( comparator , false ); // returns minimum by default
+		this( comparator , HEAP.MIN_HEAP ); // returns minimum by default
 	}
 	// Returns either minimum or maximum values using the given comparator.
-	public Heap(Comparator<K> comparator, boolean returnMax){
+	public Heap(Comparator<K> comparator, HEAP returnMax){
 		comp = comparator;
-		this.returnMax = returnMax;
+		this.returnMax = returnMax.toBoolean();
+	}
+	// Returns either minimum or maximum values using the given comparator.
+	public Heap(Comparator<K> comparator, HEAP returnMax, int maxCapacity){
+		comp = comparator;
+		this.returnMax = returnMax.toBoolean();
+		this.maxCapacity = maxCapacity;
 	}
 	
 	// our heap will be in array form. We'll use math to detect positions of 
 	// children and parents
+	// TODO : Replace with dynamically growing array
 	private List<K> heap = new ArrayList<K>();
 	
 	private int maxIndex = 0; 
-	
+
+	/**
+	 * Attempts to add the element <code>key</code> to this heap.
+	 * @param key The element to add
+	 * @throws RuntimeException if the maximum capacity of this heap has been reached.
+	 * @see offer(K key)
+	 */
 	public synchronized void insert(K key){ //, E element){
+		if( heap.size() >= maxCapacity ) throw new RuntimeException("Maximum Heap capacity reached! Cannot insert new elements");
+		
 		heap.add( maxIndex, key ); // insert at the end of the array ( last open leaf in the tree)
 		
 		bubbleUp( maxIndex ); // move it up the tree if need be
 		
 		maxIndex++; // increment our internal counter 
+	}
+	
+	/**
+	 * Like <code>insert(K key)</code> but checks to see if there is still
+	 * room in this heap's capacity for another element. 
+	 * </p>
+	 * @param key
+	 * @return True if this element was added. False otherwise.
+	 */
+	public synchronized boolean offer(K key){
+		if( heap.size() >= maxCapacity )
+			return false;
+		
+		insert(key);
+		
+		return true;
+	}
+	
+	/**
+	 * Like <code>insert(K key)</code> but if there is no more
+	 * room in this heap's capacity will <code>removeRoot()</code> 
+	 * and then insert <code>key</code> into the heap. 
+	 * 
+	 * @param key New element to force into this heap
+	 * @return The popped off root element that has been forced out. 
+	 * Null if there was still capacity for more elements.
+	 */
+	public synchronized K force(K key){
+		K oldRoot = null;
+		if ( heap.size() >= maxCapacity ){
+			oldRoot = removeRoot();
+		}
+		
+		insert( key );
+		
+		return oldRoot;
+		
 	}
 	
 	/**
@@ -200,15 +269,31 @@ public class Heap<K> implements Iterable<K>{
 		return heap.size();
 	}
 	
+	/**Returns the maximum number of elements that can be added to this heap before 
+	 * it's maximum capacity is reached.*/
+	public int capacity(){
+		return maxCapacity;
+	}
+	
+	/**Returns true iff there is still room in this heap for more elements to add*/
+	public boolean hasRoom(){
+		return maxCapacity > heap.size();
+	}
+	
 	@Override
 	public Iterator<K> iterator() {
 		return heap.iterator();
+	}
+	
+	public Stream<K> stream() {
+		return heap.stream();
 	}
 	
 	@Override
 	public String toString(){
 		return heap.toString();
 	}
+	
 	
 	/** Returns the root element without removing it **/
 	public K peek(){

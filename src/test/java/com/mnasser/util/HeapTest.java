@@ -3,6 +3,8 @@ package com.mnasser.util;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.mnasser.util.Heap.HEAP;
+
 public class HeapTest {
 
 	@Test
@@ -69,13 +71,11 @@ public class HeapTest {
 		System.out.println( h.removeRoot() );
 		Assert.assertEquals ( 5 , h.peek().intValue() );
 		Heap.print(h);
-		
-		
 	}
 	
 	@Test
 	public void testHeapComparable(){
-		Heap<String> h = new HeapComparable<String>(false);
+		Heap<String> h = new HeapComparable<String>( HEAP.MIN_HEAP );
 		
 		h.insert("hi");
 		h.insert("hello");
@@ -110,6 +110,24 @@ public class HeapTest {
 
 	}
 	
+	@Test( expected = RuntimeException.class )
+	public void testMaxCapacity(){
+		Heap<Integer> h = new HeapComparable<Integer>( 2 );
+		Assert.assertEquals( 2 , h.capacity() );
+		
+		Assert.assertTrue( h.hasRoom() );
+		
+		h.insert(1);
+		h.insert(2);
+		
+		Assert.assertEquals( 2 , h.size() );
+		
+		Assert.assertFalse( h.hasRoom() );
+		
+		// throws
+		h.insert(3);
+	}
+	
 	@Test
 	public void testRemove(){
 		Heap<Integer> h = new HeapComparable<>();
@@ -121,6 +139,21 @@ public class HeapTest {
 		Assert.assertEquals( 2, h.removeRoot().intValue() );
 		
 		Assert.assertEquals( 0 , h.size() );
+	}
+	
+	@Test
+	public void testOfferAndForce(){
+		Heap<Integer> h = new HeapComparable<>( 1 );
+		
+		h.insert( 1 );
+		
+		Assert.assertFalse( h.hasRoom() ); // no more room
+		
+		Assert.assertFalse( h.offer( 2 ) ); // offer will fail; no room
+		
+		Assert.assertEquals( 1 , h.force( 2 ).intValue() ); // force will pop root
+		
+		
 	}
 	
 }

@@ -3,6 +3,7 @@ package com.mnasser.graph;
 import com.mnasser.graph.Graph.Edge;
 import com.mnasser.graph.Graph.Vertex;
 import com.mnasser.util.Heap;
+import com.mnasser.util.Heap.HEAP;
 
 /**
  * Implementation of Prim's Minimum Spanning Tree algorithm.
@@ -31,7 +32,7 @@ public class PrimMST {
 		
 		// The group of all edges seen by all vertices currently being added
 		// to our MST graph T.  
-		Heap<Edge> frontier = new Heap<Edge>( Graph.getEdgeComparator(), false );
+		Heap<Edge> frontier = new Heap<Edge>( Graph.getEdgeComparator(), HEAP.MIN_HEAP );
 		
 		// our MST. Will fill slowly with vertices
 		Graph T = Graph.getInstance();

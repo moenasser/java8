@@ -13,8 +13,10 @@ package com.mnasser.util;
 public class HeapComparable<K extends Comparable<K>> extends Heap<K> {
 
 	public HeapComparable() {	super(null);	}
-	public HeapComparable(boolean returnMax) {	super(null, returnMax);	}
-
+	//public HeapComparable(boolean returnMax) {	super(null, returnMax);	}
+	public HeapComparable(HEAP returnMax)    {	super(null, returnMax);	}
+	public HeapComparable(HEAP returnMax, int maxCapacity){ super( null, returnMax, maxCapacity); }
+	public HeapComparable(int maxCapacity){ super( null, maxCapacity); }
 	
 	/**
 	 * If this child doesn't compare properly to its
