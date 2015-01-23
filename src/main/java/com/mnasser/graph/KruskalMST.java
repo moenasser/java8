@@ -10,7 +10,9 @@ import com.mnasser.util.Heap;
 /**
  * Kruskal's Minimum Spanning Tree algorithm.
  * 
- * Using the Union-Find technique we can 
+ * Using the Union-Find technique we can quickly (in {@code O( m logn )} time)
+ * procure a leader pointer 
+ * 
  * @author Moe
  */
 public class KruskalMST {
@@ -33,10 +35,28 @@ public class KruskalMST {
 	 * cluster group each vertex is being added to.  This is what the <code>leader 
 	 * pointer</code> on each vertex is for. 
 	 * 
-	 * @param G
-	 * @return T
+	 * </p>
+	 * NOTE : this algorithm can be used in two ways. The first keeps track of connected
+	 * component group leaders and the children of those leaders (essentially a graph of 
+	 * depth 1).  See {@code findMSTNaive()} or this.  Set {@code useUnionByRank} to 
+	 * false.  
+	 * </p>
+	 * The second way this algo works is w UnionByRank & Path Compression.  
+	 * This can speed up the initial union-find technique by employing union-by-rank,  
+	 * which will keep a rank of each group leader but instead of forming a flat depth-of-1 
+	 * graph beneath each leader, we simply update each group leader's leader during the 
+	 * {@code union()} operations.  In this way, small bushy trees are formed beneath the
+	 * growing connected components.  Path compression is then used to speed up calls to 
+	 * the {@code find()} operations by immediately updating a child vertex's parent pointer 
+	 * if it is not already the leader of the entire group.    
+	 * 
+	 * @param G The graph whose minimum spanning tree is desrired. 
+	 * @param useUnionByRank True to use unionByRank & pathCompression. False for not.
+	 * @return T A tree spanning all nodes in G using the set of edges 
+	 * @see KruskalMST.findMSTNaive
+	 * @see KruskalMST.findMSTLazyUnionByRank
 	 */
-	public static Graph findMST(Graph G){
+	public static Graph findMST(Graph G, boolean useUnionByRank){
 		// Our MST
 		Graph T = new AdjacencyListGraph();
 		
@@ -48,6 +68,7 @@ public class KruskalMST {
 		//Initialization ...
 		//Add edges to heap. (TODO : create "heapify" batch loading method)
 		for( Edge e : G.getEdges()){
+			
 			edgeHeap.insert(e);
 			e.src.visited = false;
 			e.dst.visited = false;
@@ -57,6 +78,10 @@ public class KruskalMST {
 			e.dst.followers = null;
 			//if (e.src.followers==null) e.src.followers = new ArrayList<Vertex>();
 			//if (e.dst.followers==null) e.dst.followers = new ArrayList<Vertex>();
+			if( useUnionByRank ){
+				e.src.rank = 0 ;
+				e.dst.rank = 0;
+			}
 		}
 		
 		long lap = System.nanoTime();
@@ -70,18 +95,33 @@ public class KruskalMST {
 			Edge e = edgeHeap.removeRoot();
 			
 			// since both of these are in connected component groups,
-			// we need to find their leader pointers.  If both Nodes are 
-			// already in the same leader pointer group then adding 
-			// this edge will cause a CYCLE.
+			// we need to find the leaders of each group.  If both Nodes are 
+			// already in the same group then adding 
+			// this edge will cause a CYCLE so we skill it.
 			Vertex cluster1 = find( e.src );
 			Vertex cluster2 = find( e.dst );
+			
+			if ( useUnionByRank ) {
+				// since the recursive calls above would normally take O(log n) time, 
+				// let's go ahead and save these values so we avoid the 
+				if ( e.src.leaderPointer != cluster1 ){
+					e.src.leaderPointer = cluster1; 
+				}
+				if( e.dst.leaderPointer != cluster2 ){
+					e.dst.leaderPointer = cluster2;
+				}
+			}
+
 			
 			if(  cluster1  !=  cluster2  ) 
 			{
 				// add the edge + vertices to T
 				T.addEdge( e );
 				// make sure they are in the same group
-				union( cluster1 ,  cluster2 );
+				if( useUnionByRank )
+					lazyUnionByRank( cluster1, cluster2 );
+				else
+					union( cluster1 ,  cluster2 );
 			}	
 			
 			if ( T.getVertexCount() == G.getVertexCount() ) // we're done. 
@@ -94,12 +134,21 @@ public class KruskalMST {
 		return T;
 	}
 	
+	/**
+	 * Find the MST of graph G using Kruskal's MST algorithm.
+	 * This makes use of the Union-Find technique of keeping track of every
+	 * connected component group and merging them as we keep spanning the tree.
+	 * */
+	public static Graph findMSTNaive(Graph G){
+		return findMST( G , false );
+	}
+	
 	/** Finds the cluster group (connected components group) that <code>v</code>
 	 * is a part of.*/
 	protected static Vertex find(Vertex v){
 		Vertex leader = v.leaderPointer;
-		return  ( leader.leaderPointer != leader )? find(leader) : leader ;
 		// in Lazy-Union-Find we need multiple recursive calls to find()
+		return  ( leader.leaderPointer != leader )? find(leader) : leader ;
 	}
 	
 	/** Given the leaders of 2 connected component groups, will merge them into 
@@ -143,5 +192,55 @@ public class KruskalMST {
 	
 	protected static int getFollowerSize(Vertex v){
 		return ( v.followers == null )? 0 : v.followers.size(); 
+	}
+	
+	
+	/**
+	 * Find the MST of graph G using Kruskal's MST algorithm.
+	 * This makes use of the Lazy-Union-Find technique of keeping track of every
+	 * connected component group and merging them as we keep spanning the tree. The 
+	 * merge in this case is a lazy update of one group leader to point to the other
+	 * group leader.
+	 * </p>
+	 * Ranks of each group leader are kept up in order to quickly determine which
+	 * group already has a deep tree.
+	 * </p>
+	 * Since trees are being formed beneath leaders (and leaders are the roots of these trees)
+	 * it would take O(log n) time for each find. We counter this with Path Compression.
+	 * This is implemented by updating child nodes' parents to point directly to group leaders
+	 * (roots) as soon as we encounter them in a find.  
+	 * 
+	 * @param G
+	 * @return
+	 * @see Kruskal.findMST
+	 */
+	public static Graph findMSTLazyUnionByRank(Graph G){
+		return findMST( G , true );
+	}
+
+	
+	
+	/** Instead of keeping track of every single follower beneath a leader vertex, (and thus
+	 * creating very flat 1-level trees beneath leaders), we will simply update the pointer of
+	 * one leader to point to the next.  In this method, since these aren't leader pointer but just 
+	 * parent pointers really, we are making bushy trees. 
+	 * </p>
+	 * This will increase the time it takes to do a find() call from {@code O(1)} to {@code O(log n)}.  However
+	 * over a sequence of calls we will not need to be doing this that much and, very importantly,
+	 * we will introduce <strong>Path Compression</code> to help speed up our lazy union approach. 
+	 * </p>
+	 * */
+	protected static void lazyUnionByRank(Vertex v, Vertex u){
+		Vertex parent = null, child = null; 
+		if ( v.rank  > u.rank ){
+			parent = v;  child = u;
+		}else{
+			parent = u;  child = v;
+		}
+		
+		child.leaderPointer = parent;
+		
+		if ( parent.rank == child.rank )  // if nodes were same rank, promote one
+			parent.rank ++ ;
 	}
 }

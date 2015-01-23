@@ -90,7 +90,10 @@ public abstract class Graph {
 		protected Vertex leaderPointer = this;
 		/**How many other vertices point to this vertex.*/
 		protected List<Vertex> followers = null;
+		/**For Lazy-Union find & Path compression when finding minimum spanning trees*/
+		protected int rank = 0;
 		
+
 		public Vertex(int id) {
 			this.id = id;
 			this.edges = new ArrayList<Edge>();

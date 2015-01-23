@@ -37,7 +37,7 @@ public class KruskalMSTTest {
 
 		System.out.println(G);
 		
-		Graph T = KruskalMST.findMST(G);
+		Graph T = KruskalMST.findMSTNaive(G);
 		
 		System.out.println(T);
 		
@@ -51,7 +51,7 @@ public class KruskalMSTTest {
 		Graph G = loadTestGraph("edges_graph.txt");
 		
 		long fileLoad = System.currentTimeMillis();
-		Graph T = KruskalMST.findMST( G );
+		Graph T = KruskalMST.findMSTNaive( G );
 		
 		long mstTime = System.currentTimeMillis();
 		
@@ -99,12 +99,36 @@ public class KruskalMSTTest {
 	}
 	
 	@Test
+	public void largeLazyUnionByRankMSTtest() throws IOException, URISyntaxException {
+		long start = System.currentTimeMillis();
+		Graph G = loadTestGraph("edges_graph.txt");
+		
+		long fileLoad = System.currentTimeMillis();
+		
+		Graph T = KruskalMST.findMSTLazyUnionByRank( G );
+		
+		long mstTime = System.currentTimeMillis();
+		
+		System.out.printf("MST edges : %s , nodes : %s%n", T.getEdgeCount(), T.getVertexCount());
+		
+		System.out.println("Time to load graph : " + (fileLoad-start));
+		System.out.println("Time to find MST   : " + (mstTime-fileLoad));
+	
+		int total_cost = 0;
+		for( Edge e : T.getEdges() )
+			total_cost += e.cost();
+		
+		System.out.println("Total cost of MST  : " + total_cost);
+		
+	}
+	
+	@Test
 	public void randomTest(){
 		int N = 3_000_000; // 1_000_000;
 		Graph G = Graph.makeRandomGraph( N  );
 		System.out.println( G.toInfoLine() );
 		
-		Graph T = KruskalMST.findMST( G );
+		Graph T = KruskalMST.findMSTNaive( G );
 		
 		System.out.println( T.toInfoLine() );
 		

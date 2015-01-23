@@ -1,7 +1,6 @@
 package com.mnasser;
 
 import java.text.NumberFormat;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -218,8 +217,7 @@ public class LotsOfInterviewQuestions {
 		
 		Assert.assertEquals( 10_000 , heap.size() );
 		
-		System.out.println( "Largest element of bottom 10k  : " + NF.format( heap.peek() ) );
-		
+		System.out.println( "Largest  element of bottom 10k : " + NF.format( heap.peek() ) );
 		System.out.println( "Smallest element of bottom 10k : " +
 				NF.format(heap.stream().mapToInt( x -> x ).min().getAsInt()) );
 		
@@ -244,4 +242,34 @@ public class LotsOfInterviewQuestions {
 		System.out.println(heap);
 	}
 	
+	
+	public int g(int x ){
+		return x * x + 1 ;
+	}
+	
+	public int f(int x){
+		return x + 5;
+	}
+	
+	@Test
+	public void functions(){
+		System.out.println("Hi Ali : ");
+		IntStream.range(-10, 10).boxed().forEach(
+				x -> {  
+					int y = g(x);
+					System.out.println("[ "+x + "] g(x) = " + y  + " f(x) =" + f(x) + " f("+y+") = " + f(g(x)));}
+				);
+	}
+	
+	@Test
+	public void testRecursion(){
+		recursion(0 ,  3);
+	}
+	public void recursion(int running_total, int current_adder){
+		if( current_adder == 100 ) return;
+		System.out.println( "running total = "+ running_total + ". Current_adder = " + current_adder);
+		running_total = running_total +  current_adder;
+		
+		recursion( running_total, current_adder + 1 ); 
+	}
 }
