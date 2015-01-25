@@ -56,18 +56,18 @@ public class KruskalMST {
 	 * @see KruskalMST.findMSTNaive
 	 * @see KruskalMST.findMSTLazyUnionByRank
 	 */
-	public static Graph findMST(Graph G, boolean useUnionByRank){
+	public static <X> Graph<X> findMST(Graph<X> G, boolean useUnionByRank){
 		// Our MST
-		Graph T = new AdjacencyListGraph();
+		Graph<X> T = new AdjacencyListGraph<X>();
 		
 		//Ranked edges by their costs
-		Heap<Edge> edgeHeap = new Heap<Edge>( Comparator.comparingInt( e -> e.cost() ));
+		Heap<Edge<X>> edgeHeap = new Heap<Edge<X>>( Comparator.comparingInt( e -> e.cost() ));
 		
 		long start = System.nanoTime();
 		
 		//Initialization ...
 		//Add edges to heap. (TODO : create "heapify" batch loading method)
-		for( Edge e : G.getEdges()){
+		for( Edge<X> e : G.getEdges()){
 			
 			edgeHeap.insert(e);
 			e.src.visited = false;
@@ -92,14 +92,14 @@ public class KruskalMST {
 		//begin our loop by adding in edges and adjusting leader pointers
 		while ( edgeHeap.size() > 0 ) {
 			//System.out.println( edgeHeap );
-			Edge e = edgeHeap.removeRoot();
+			Edge<X> e = edgeHeap.removeRoot();
 			
 			// since both of these are in connected component groups,
 			// we need to find the leaders of each group.  If both Nodes are 
 			// already in the same group then adding 
 			// this edge will cause a CYCLE so we skill it.
-			Vertex cluster1 = find( e.src );
-			Vertex cluster2 = find( e.dst );
+			Vertex<X> cluster1 = find( e.src );
+			Vertex<X> cluster2 = find( e.dst );
 			
 			if ( useUnionByRank ) {
 				// since the recursive calls above would normally take O(log n) time, 
@@ -139,22 +139,22 @@ public class KruskalMST {
 	 * This makes use of the Union-Find technique of keeping track of every
 	 * connected component group and merging them as we keep spanning the tree.
 	 * */
-	public static Graph findMSTNaive(Graph G){
+	public static <X> Graph<X> findMSTNaive(Graph<X> G){
 		return findMST( G , false );
 	}
 	
 	/** Finds the cluster group (connected components group) that <code>v</code>
 	 * is a part of.*/
-	protected static Vertex find(Vertex v){
-		Vertex leader = v.leaderPointer;
+	protected static <X> Vertex<X> find(Vertex<X> v){
+		Vertex<X> leader = v.leaderPointer;
 		// in Lazy-Union-Find we need multiple recursive calls to find()
 		return  ( leader.leaderPointer != leader )? find(leader) : leader ;
 	}
 	
 	/** Given the leaders of 2 connected component groups, will merge them into 
 	 * 1 by updating all leader pointers of each group.*/
-	protected static void union(Vertex v, Vertex u){
-		Vertex leader = null , follower = null;
+	protected static <X> void union(Vertex<X> v, Vertex<X> u){
+		Vertex<X> leader = null , follower = null;
 		if( getFollowerSize(v) >= getFollowerSize(u) ){
 			leader = v;  follower = u;
 		}else{
@@ -162,7 +162,7 @@ public class KruskalMST {
 		}
 		
 		if ( leader.followers == null )
-			leader.followers = new ArrayList<Vertex>();
+			leader.followers = new ArrayList<Vertex<X>>();
 		
 		//Vertex leader = (v.followers.size() >= u.followers.size())? v : u;
 		//Vertex follower = (u.followers.size() < v.followers.size() )? u : v;
@@ -171,7 +171,7 @@ public class KruskalMST {
 		// For Lazy-Union-Find you would allow multiple levels.
 		if( follower.followers != null ){
 			
-			for( Vertex f : follower.followers ){
+			for( Vertex<X> f : follower.followers ){
 				f.leaderPointer = leader;
 				if( f.followers != null ) { 
 					f.followers.clear(); // for Lazy-Union-Find, allow follower to retain followers
@@ -190,7 +190,7 @@ public class KruskalMST {
 		// TODO : must add follower array to each vertex
 	}
 	
-	protected static int getFollowerSize(Vertex v){
+	protected static <X> int getFollowerSize(Vertex<X> v){
 		return ( v.followers == null )? 0 : v.followers.size(); 
 	}
 	
@@ -214,7 +214,7 @@ public class KruskalMST {
 	 * @return
 	 * @see Kruskal.findMST
 	 */
-	public static Graph findMSTLazyUnionByRank(Graph G){
+	public static <X> Graph<X> findMSTLazyUnionByRank(Graph<X> G){
 		return findMST( G , true );
 	}
 
@@ -230,8 +230,8 @@ public class KruskalMST {
 	 * we will introduce <strong>Path Compression</code> to help speed up our lazy union approach. 
 	 * </p>
 	 * */
-	protected static void lazyUnionByRank(Vertex v, Vertex u){
-		Vertex parent = null, child = null; 
+	protected static <X> void lazyUnionByRank(Vertex<X> v, Vertex<X> u){
+		Vertex<X> parent = null, child = null; 
 		if ( v.rank  > u.rank ){
 			parent = v;  child = u;
 		}else{

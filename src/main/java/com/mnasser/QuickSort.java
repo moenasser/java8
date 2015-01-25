@@ -275,6 +275,7 @@ public class QuickSort {
 			arr[idx] = i;
 			idx ++;
 		}
+		br.close();
 		return arr;
 	}
 

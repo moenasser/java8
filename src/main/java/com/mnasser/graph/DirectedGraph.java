@@ -14,13 +14,13 @@ package com.mnasser.graph;
  * @author Moe
  *
  */
-public class DirectedGraph extends AdjacencyListGraph{
+public class DirectedGraph<V> extends AdjacencyListGraph<V>{
 
 	@Override public boolean isDirected() { return true;}
 	
 	//private boolean reversed = false;
-	private Vertex max = null;
-	private Vertex min = null;
+	private Vertex<V> max = null;
+	private Vertex<V> min = null;
 	
 
 	public DirectedGraph() {
@@ -32,31 +32,31 @@ public class DirectedGraph extends AdjacencyListGraph{
 
 	
 	@Override
-	public void addEdge(Edge e) {
+	public void addEdge(Edge<V> e) {
 		// no parallel edges 
 		if( ! hasEdge(e) )
 			super.addEdge(e);
 	}
 	
 	@Override
-	public Vertex addVertex(Vertex v) {
-		Vertex v1 = super.addVertex(v);
-		max = (max == null)? v : (max.id < v.id)? v : max;
-		min = (min == null)? v : (min.id > v.id)? v : min;
+	public Vertex<V> addVertex(Vertex<V> node) {
+		Vertex<V> v1 = super.addVertex(node);
+		max = (max == null)? node : (max.id < node.id)? node : max;
+		min = (min == null)? node : (min.id > node.id)? node : min;
 		return v1;
 	}
 	
-	Vertex getMax(){ return this.max; }
-	Vertex getMin(){ return this.min; }
+	Vertex<V> getMax(){ return this.max; }
+	Vertex<V> getMin(){ return this.min; }
 	
 	public void clearVisited(){
-		for( Vertex a : getVertices() ){
+		for( Vertex<V> a : getVertices() ){
 			a.visited = false;
 		}
 	}
 	
 	public void clearOrdering(){
-		for( Vertex a : getVertices() ){
+		for( Vertex<V> a : getVertices() ){
 			a.order = -1;
 		}
 	}

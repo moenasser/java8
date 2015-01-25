@@ -2,6 +2,7 @@ package com.mnasser.graph;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import com.mnasser.graph.Graph.Vertex;
 public class PrimMSTTest {
 
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void simpleTest(){
 		Graph G = Graph.getInstance();
 		
@@ -36,6 +38,7 @@ public class PrimMSTTest {
 	}
 	
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void largeMSTtest() throws IOException, URISyntaxException{
 		long start = System.currentTimeMillis();
 		Graph G = KruskalMSTTest.loadTestGraph("edges_graph.txt");
@@ -51,7 +54,7 @@ public class PrimMSTTest {
 		System.out.println("Time to find MST   : " + (mstTime-fileLoad));
 	
 		int total_cost = 0;
-		for( Edge e : T.getEdges() )
+		for( Edge e : (List<Edge>)  T.getEdges() )
 			total_cost += e.cost();
 		
 		System.out.println("Total cost of MST  : " + total_cost);

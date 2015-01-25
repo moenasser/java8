@@ -1,5 +1,7 @@
 package com.mnasser.graph;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -9,6 +11,7 @@ import com.mnasser.graph.Graph.Vertex;
 public class DFSTest {
 
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testDfs(){
 		DirectedGraph g = new DirectedGraph();
 		
@@ -31,7 +34,7 @@ public class DFSTest {
 		System.out.println(g.toString());
 		
 		System.out.println("=========TRAVERSING======");
-		for( Vertex v : g.getVertices() ) {
+		for( Vertex v : (List<Vertex>) g.getVertices() ) {
 			System.out.println("\nStarting at " + v);
 			g.clearVisited();
 			DFS.traverseDFS( v );

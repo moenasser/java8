@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.NumberFormat;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -23,6 +24,7 @@ import com.mnasser.graph.Graph.Vertex;
 public class KruskalMSTTest {
 
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void simpleTest(){
 		Graph G = Graph.getInstance();
 		
@@ -46,6 +48,7 @@ public class KruskalMSTTest {
 	}
 	
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void largeMSTtest() throws IOException, URISyntaxException{
 		long start = System.currentTimeMillis();
 		Graph G = loadTestGraph("edges_graph.txt");
@@ -61,13 +64,14 @@ public class KruskalMSTTest {
 		System.out.println("Time to find MST   : " + (mstTime-fileLoad));
 	
 		int total_cost = 0;
-		for( Edge e : T.getEdges() )
+		for( Edge e : (List<Edge>) T.getEdges() )
 			total_cost += e.cost();
 		
 		System.out.println("Total cost of MST  : " + total_cost);
 	}
 	
 	/*Looks in resources/ dir for MST test graph edge/vertices info*/
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static Graph loadTestGraph(String file) throws IOException, URISyntaxException{
 		File f = new File( KruskalMSTTest.class.getResource(file).toURI() );
 		System.out.print("Loading file " + file + "...");
@@ -99,6 +103,7 @@ public class KruskalMSTTest {
 	}
 	
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void largeLazyUnionByRankMSTtest() throws IOException, URISyntaxException {
 		long start = System.currentTimeMillis();
 		Graph G = loadTestGraph("edges_graph.txt");
@@ -111,11 +116,11 @@ public class KruskalMSTTest {
 		
 		System.out.printf("MST edges : %s , nodes : %s%n", T.getEdgeCount(), T.getVertexCount());
 		
-		System.out.println("Time to load graph : " + (fileLoad-start));
-		System.out.println("Time to find MST   : " + (mstTime-fileLoad));
+		System.out.println("Time to load file  : " + (fileLoad-start));
+		System.out.println("Time to call MST() : " + (mstTime-fileLoad));
 	
 		int total_cost = 0;
-		for( Edge e : T.getEdges() )
+		for( Edge e : (List<Edge>) T.getEdges() )
 			total_cost += e.cost();
 		
 		System.out.println("Total cost of MST  : " + total_cost);
@@ -123,14 +128,17 @@ public class KruskalMSTTest {
 	}
 	
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void randomTest(){
-		int N = 3_000_000; // 1_000_000;
+		int N = 100_000; //3_000_000; // 1_000_000;
 		Graph G = Graph.makeRandomGraph( N  );
 		System.out.println( G.toInfoLine() );
 		
 		Graph T = KruskalMST.findMSTNaive( G );
+		Graph T2  = KruskalMST.findMSTLazyUnionByRank( G );
 		
 		System.out.println( T.toInfoLine() );
+		System.out.println( T2.toInfoLine() );
 		
 		long total_cost = 0 ;
 		long timeOld = 0, timeStream = 0, timeParallelStream = 0;
@@ -140,16 +148,16 @@ public class KruskalMSTTest {
 			total_cost = 0;
 			
 			long start = System.nanoTime();
-			for( Edge e : T.getEdges() )   // as N gets higher ... the old way wins out
+			for( Edge e : (List<Edge>) T.getEdges() )   // as N gets higher ... the old way wins out
 				total_cost += e.cost();
 			timeOld += System.nanoTime() - start;
 			
 			start = System.nanoTime();     // faster for N between [10K-100K]. Break even ~75k. Slower after 
-			total_cost = T.getEdges().stream().mapToInt( e -> e.cost() ).sum();
+			total_cost = T.getEdges().stream().mapToInt( e -> ((Edge) e).cost() ).sum();
 			timeStream += System.nanoTime() - start;
 			
 			start = System.nanoTime();     // Always slower than old way. Faster than stream() when N > ~1 million
-			total_cost = T.getEdges().parallelStream().mapToInt( e -> e.cost() ).sum();
+			total_cost = T.getEdges().parallelStream().mapToInt( e -> ((Edge) e).cost() ).sum();
 			timeParallelStream += System.nanoTime() - start;
 		}
 		System.out.println("Time to sum() all costs old way             : " + (timeOld/10.0)/1_000_000 + "ms");

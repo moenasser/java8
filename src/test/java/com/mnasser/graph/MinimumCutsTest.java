@@ -14,6 +14,7 @@ import com.mnasser.graph.Graph.Vertex;
 public class MinimumCutsTest {
 
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testRandomEdgeSelect() throws Exception {
 		Graph G = Graph.makeRandomGraph(5);
 		//System.out.println(G);
@@ -21,7 +22,7 @@ public class MinimumCutsTest {
 		//System.out.println(G.isConnected());
 		
 		Map<Edge, Integer> edgeCounter = new HashMap<Edge, Integer>();
-		for( Edge e : G.getEdges()) 
+		for( Edge e : (List<Edge>) G.getEdges()) 
 			edgeCounter.put(e, 0);
 		for( int ii = 0; ii < 10000; ii ++){
 			Edge e = Graph.getRandomEdge(G);
@@ -48,6 +49,7 @@ public class MinimumCutsTest {
 	}
 	
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testRemoveRandomEdge() throws Exception {
 		Graph g = Graph.makeRandomGraph(5);
 		
@@ -62,6 +64,7 @@ public class MinimumCutsTest {
 	}
 	
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testRemoveRandomVertex() throws Exception {
 		Graph g = Graph.makeRandomGraph(5);
 		
@@ -69,7 +72,7 @@ public class MinimumCutsTest {
 		Assert.assertTrue(g.hasVertex(a));
 		
 		List<Vertex> neighbors = new ArrayList<Vertex>();
-		for( Edge e : a.edges ){
+		for( Edge e : (List<Edge>) a.edges ){
 			neighbors.add( e.otherSide(a) );
 		}
 		
@@ -84,6 +87,7 @@ public class MinimumCutsTest {
 	}
 	
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testContractEdge() throws Exception {
 		Graph g = new AdjacencyListGraph();
 		g.addEdge( new Vertex(1), new Vertex(2) );
@@ -131,6 +135,7 @@ public class MinimumCutsTest {
 	}
 
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testFindMinimumCut() throws Exception {
 		Graph g = new AdjacencyListGraph();
 		g.addEdge( new Vertex(1), new Vertex(2) );
@@ -147,6 +152,7 @@ public class MinimumCutsTest {
 	}
 	
 	@Test
+	@SuppressWarnings({ "rawtypes"})
 	public void testMinCuts() throws Exception {
 		//Graph g = MinimumCut.loadGraph("/home/mnasser/workspace/personal-scrap/src/main/resources/kargerTest.txt");
 		Graph g = MinimumCut.loadGraph("kargerTest.txt");

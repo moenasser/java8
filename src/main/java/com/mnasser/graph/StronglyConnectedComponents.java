@@ -13,6 +13,7 @@ import com.mnasser.graph.Graph.Edge;
 import com.mnasser.graph.Graph.Vertex;
 
 
+@SuppressWarnings({"rawtypes" , "unchecked"})
 public class StronglyConnectedComponents {
 
 	public static void main(String[] args) {
@@ -64,7 +65,7 @@ public class StronglyConnectedComponents {
 				if ( ! s.visited ){
 					s.visited = true;
 					
-					for( Edge e : s.getInBound() ){
+					for( Edge e : (List<Edge>) s.getInBound() ){
 						if( ! e.src.isVisited() ) 
 							stack.push( e.src );
 					}
@@ -113,7 +114,7 @@ public class StronglyConnectedComponents {
 					s.visited = true;
 					rt.inc();
 					
-					for( Edge e : s.getOutBound() ){
+					for( Edge e : (List<Edge>) s.getOutBound() ){
 						if( ! e.dst.isVisited() ) {
 							stack.push( e.dst );
 						}

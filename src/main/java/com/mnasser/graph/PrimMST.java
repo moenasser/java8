@@ -28,33 +28,33 @@ public class PrimMST {
 	 * @param G A connected graph 
 	 * @return A Minimum Spanning Tree of G
 	 */
-	public static Graph findMSTNaive(Graph G){
+	public static <X> Graph<X> findMSTNaive(Graph<X> G){
 		
 		// The group of all edges seen by all vertices currently being added
 		// to our MST graph T.  
-		Heap<Edge> frontier = new Heap<Edge>( Graph.getEdgeComparator(), HEAP.MIN_HEAP );
+		Heap<Edge<X>> frontier = new Heap<Edge<X>>( Graph.getEdgeComparator(), HEAP.MIN_HEAP );
 		
 		// our MST. Will fill slowly with vertices
-		Graph T = Graph.getInstance();
+		Graph<X> T = Graph.getInstance();
 		
 		// TODO : this should be in an initialization step of the graph itself
-		for( Vertex v : G.getVertices() )
+		for( Vertex<X> v : G.getVertices() )
 			v.visited = false;
 		
-		Vertex current = Graph.getRandomVertex( G );
+		Vertex<X> current = Graph.getRandomVertex( G );
 		current.visited = true; // mark
 		T.addVertex(current);   // add to temp graph
 		
 		do {
 			
 			
-			for( Edge e : current.getEdges() )
+			for( Edge<X> e : current.getEdges() )
 				frontier.insert( e );
 			
 			// go thru the best (cheapest cost) edges and find the next one 
 			// that introduces a new vertex not already in T.
 			// If an edge introduces a visited vertex just skip it.
-			Edge bestEdge;
+			Edge<X> bestEdge;
 			do 
 			{
 				bestEdge = frontier.removeRoot(); // get next cheapest edge
@@ -74,7 +74,7 @@ public class PrimMST {
 		return T;
 	}
 	
-	private static Vertex getUnvisited(Edge e){
+	private static <X> Vertex<X> getUnvisited(Edge<X> e){
 		return e.dst.isVisited() ? e.src : e.dst;
 	}
 }

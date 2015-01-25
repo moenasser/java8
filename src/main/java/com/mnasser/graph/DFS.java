@@ -9,9 +9,11 @@ import org.junit.Assert;
 import com.mnasser.graph.Graph.Edge;
 import com.mnasser.graph.Graph.Vertex;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class DFS {
 
 	public static void main(String[] args) {
+		
 		DirectedGraph g = new DirectedGraph();
 		
 		g.addEdge( new Vertex(1), new Vertex(2) );
@@ -33,7 +35,7 @@ public class DFS {
 		System.out.println(g.toString());
 		
 		System.out.println("=========TRAVERSING======");
-		for( Vertex v : g.getVertices() ) {
+		for( Vertex v : (List<Vertex>) g.getVertices() ) {
 			System.out.println("\nStarting at " + v);
 			g.clearVisited();
 			traverseDFS( v );
@@ -50,7 +52,7 @@ public class DFS {
 		rt.inc();
 		//System.out.println( "visiting " + s ); //s + ((p==null)?"":" (from "+p.id+")" ));
 		//int v = 0;
-		for( Edge e : (reverse)?s.getInBound():s.getOutBound() ){
+		for( Edge e : (List<Edge>) ((reverse)?s.getInBound():s.getOutBound())  ){
 			if( ! ((reverse)? e.src.isVisited() : e.dst.isVisited()) ) {
 				traverseDFS( ((reverse)?e.src:e.dst), bth, reverse, rt );
 				//v++;

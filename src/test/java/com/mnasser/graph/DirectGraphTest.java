@@ -5,6 +5,7 @@ import org.junit.Test;
 public class DirectGraphTest {
 
 	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testGraph() throws Exception {
 		DirectedGraph g = new DirectedGraph();
 		g.addEdge( 1, 2 );

@@ -6,6 +6,7 @@ import org.junit.Test;
 import com.mnasser.graph.Graph.Edge;
 import com.mnasser.graph.Graph.Vertex;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class AdjacencyGraphTest {
 
 	@Test

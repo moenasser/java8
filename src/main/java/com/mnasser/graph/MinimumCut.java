@@ -12,6 +12,8 @@ import com.mnasser.DirUtils;
 import com.mnasser.graph.Graph.Edge;
 import com.mnasser.graph.Graph.Vertex;
 
+
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class MinimumCut {
 
 	public static void main(String[] args) throws IOException, URISyntaxException {
@@ -112,9 +114,9 @@ public class MinimumCut {
 			Edge e = Graph.getRandomEdge(g);
 			//System.out.println("Contracting edge " + e);
 			contractEdge(g, e);
-			if( g.getVertices().size() == 3 || g.getVertices().size() == 4 ){
-				g.toMatrixString();
-			}
+			//if( g.getVertices().size() == 3 || g.getVertices().size() == 4 ){
+			//	g.toMatrixString();
+			//}
 			//System.out.println(g);
 		}
 		//System.out.println("Minimum Edges left = " + g.getEdges().size());
@@ -132,7 +134,7 @@ public class MinimumCut {
 
 		List<Edge> allEdges = new ArrayList<Edge>();
 		allEdges.addAll(a.edges);
-		for( Edge _b : b.edges ){
+		for( Edge _b : (List<Edge>)  b.edges ){
 			if( ! _b.isIncidentOn(a) )
 				allEdges.add( _b );
 		}
@@ -194,6 +196,7 @@ public class MinimumCut {
 			}
 		}
 		System.out.println(cnt + " total lines.");
+		br.close();
 		return g;
 	}
 	
