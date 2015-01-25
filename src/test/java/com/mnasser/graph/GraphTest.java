@@ -93,6 +93,16 @@ public class GraphTest {
 		Assert.assertNotNull( v2.element );
 		
 		Assert.assertEquals( 2 , v2.id );
-		
 	}
+	
+	@Test
+	public void testRandomGraph(){
+		@SuppressWarnings("rawtypes")
+		Graph g = Graph.makeRandomGraph( 10_000 );
+		
+		Assert.assertEquals( 10_000 , g.getVertexCount() );
+		Assert.assertEquals( 15_000 , g.getEdgeCount() );
+	}
+
 }
+

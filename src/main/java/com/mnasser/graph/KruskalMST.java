@@ -1,11 +1,11 @@
 package com.mnasser.graph;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.mnasser.graph.Graph.Edge;
 import com.mnasser.graph.Graph.Vertex;
-import com.mnasser.util.Heap;
 
 /**
  * Kruskal's Minimum Spanning Tree algorithm.
@@ -58,18 +58,23 @@ public class KruskalMST {
 	 */
 	public static <X> Graph<X> findMST(Graph<X> G, boolean useUnionByRank){
 		// Our MST
-		Graph<X> T = new AdjacencyListGraph<X>();
+		Graph<X> T = new AdjacencyListGraph<X>( G.getVertexCount() );
 		
 		//Ranked edges by their costs
-		Heap<Edge<X>> edgeHeap = new Heap<Edge<X>>( Comparator.comparingInt( e -> e.cost() ));
+		//Heap<Edge<X>> edgeHeap = new Heap<Edge<X>>( Comparator.comparingInt( e -> e.cost() ));
+		// heap will add O(logn) time to our main for-loop below. 
+		// Let's just sort once and then just iterate
+		List<Edge<X>> sortedEdges = 
+				G.getEdges().stream().sorted( Graph.getEdgeComparator() ).collect( Collectors.toList() );
 		
 		long start = System.nanoTime();
 		
 		//Initialization ...
 		//Add edges to heap. (TODO : create "heapify" batch loading method)
-		for( Edge<X> e : G.getEdges()){
-			
-			edgeHeap.insert(e);
+		//for( Edge<X> e : G.getEdges()){
+		//	edgeHeap.insert(e);
+		
+		for( Edge<X> e : sortedEdges ){ // 
 			e.src.visited = false;
 			e.dst.visited = false;
 			e.src.leaderPointer = e.src; // each has itself as leader pointer
@@ -85,14 +90,14 @@ public class KruskalMST {
 		}
 		
 		long lap = System.nanoTime();
-		System.out.println("Time to prep G   : " + (lap - start)/1_000_000.0  + "ms" );
+		System.out.print("Time to prep G   : " + (lap - start)/1_000_000.0  + "ms  " );
 		
 		start = System.nanoTime();
 		
 		//begin our loop by adding in edges and adjusting leader pointers
-		while ( edgeHeap.size() > 0 ) {
-			//System.out.println( edgeHeap );
-			Edge<X> e = edgeHeap.removeRoot();
+		//while ( edgeHeap.size() > 0 ) {
+		//	Edge<X> e = edgeHeap.removeRoot(); // this is O(nlogn) 
+		for ( Edge<X> e : sortedEdges ) {      // this is O(n)
 			
 			// since both of these are in connected component groups,
 			// we need to find the leaders of each group.  If both Nodes are 

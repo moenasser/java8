@@ -40,8 +40,12 @@ public abstract class Graph<V> {
 	public abstract Vertex<V> addVertex(Vertex<V> v);
 	
 	public abstract void      addEdge  (Vertex<V> a, Vertex<V> b);
+	public abstract void      addEdge  (Vertex<V> a, Vertex<V> b, int cost);
 	public abstract void      addEdge  (Edge<V> e);
+	public abstract void      addEdge  (int a, int b);
+	public abstract void      addEdge  (int a, int b, int cost);
 	public abstract void      addEdge  (V a , V b);
+	public abstract void      addEdge  (V a , V b, int cost);
 	
 	/**Returns true if there exists a Vertex with internal 
 	 * element equal to {@code v}. 
@@ -88,13 +92,17 @@ public abstract class Graph<V> {
 			_ids = currentID;
 	}
 	
-	public static <X> Graph<X> copyOf(Graph<X> g){
-		Graph<X> q = new AdjacencyListGraph<X>();
-		for( Edge<X> e : g.getEdges() ){
-			if( ! q.hasEdge( e ))
-				q.addEdge(e);
+	/** Deep copy of {@code g}. Can be very Slow.*/
+	public static <X> Graph<X> copyOf(Graph<X> G){
+		Graph<X> Q = new AdjacencyListGraph<X>( G.getVertexCount() / 2 );
+		for ( Vertex<X> v : G.getVertices() ){
+			Q.addVertex( v );
 		}
-		return q;
+		for( Edge<X> e : G.getEdges() ){
+			//if( ! q.hasEdge( e ))
+			Q.addEdge(e);
+		}
+		return Q;
 	}
 
 	/**
@@ -533,7 +541,7 @@ public abstract class Graph<V> {
 						Graph.getRandomVertexOther( G , a );
 				}while( G.hasEdge( a, b )  ); 
 			
-				G.addEdge(  new Edge<X>( a, b, Graph.getRandomCost() )  );
+				G.addEdge(  a, b, Graph.getRandomCost()  );
 				
 			});
 		long edges = System.nanoTime();
@@ -573,8 +581,8 @@ public abstract class Graph<V> {
 		System.out.printf("Time random edges         : %sms%n", (edges - nodes)/1_000_000.0);
 		System.out.printf("Time more random edges    : %sms%n", (more_rand_edges - edges)/1_000_000.0);
 		System.out.printf("Time connect single nodes : %sms%n", (singles - more_rand_edges)/1_000_000.0);
-		System.out.println();
-
+		System.out.println( G.toInfoLine() );
+		
 		return G;
 	}
 

@@ -1,9 +1,9 @@
 package com.mnasser.graph;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Simple implementation of a Graph as listing of all edges <code>E</code>
@@ -16,10 +16,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AdjacencyListGraph<E> extends Graph<E>{
 	
 	public AdjacencyListGraph(int initialSize) {
-		vertices    = new ArrayList<  Vertex<E>  >(initialSize);	
+		vertices    = new ArrayList<  Vertex<E>  >(initialSize);
 		edges       = new ArrayList<   Edge<E>   >(initialSize);
-		_vertMap    = new ConcurrentHashMap< Integer , Vertex<E> >(initialSize);
-		_elementMap = new ConcurrentHashMap<    E , Vertex<E>    >(initialSize);
+		_vertMap    = new HashMap<Integer,Vertex<E>>(initialSize);//new IntMap< Vertex<E> >(  );  
+		_elementMap = new HashMap<    E , Vertex<E>    >(initialSize);
 	}
 	public AdjacencyListGraph() {
 		this(100);
@@ -28,8 +28,9 @@ public class AdjacencyListGraph<E> extends Graph<E>{
 	private List<Vertex<E>> vertices = null; 
 	private List<Edge<E>>   edges    = null; 
 	
-	private Map<Integer,Vertex<E>> _vertMap    = null;
-	private Map<E , Vertex<E>>     _elementMap = null; // so we can look up vertices by their elements quickly
+	private HashMap<Integer, Vertex<E>> _vertMap    = null;      // map of primitive int -> Vertex
+	//private IntMap<Vertex<E>>     _vertMap    = null;
+	private Map<E , Vertex<E>>    _elementMap = null; // so we can look up vertices by their elements quickly
 	
 	private int connected_vertices = 0; // so we know if there are any nodes with zero edges in O(1) time
 
@@ -222,15 +223,18 @@ public class AdjacencyListGraph<E> extends Graph<E>{
 	
 	
 	public synchronized void addEdge(Vertex<E> a, Vertex<E> b){
-		Edge<E> e = new Edge<E>(a,b);
-		addEdge(e);
-		/*
-		a.edges.add(e);
-		b.edges.add(e);
-		edges.add(e);
-		*/
+		addEdge(a , b , 0);
+	}
+	public synchronized void addEdge(Vertex<E> a, Vertex<E> b, int cost){
+		Vertex<E> av = addVertex( a );
+		Vertex<E> bv = addVertex( b );
+		Edge<E> e = new Edge<E>( av, bv , cost);
+		__addEdge( e );
 	}
 	public synchronized void addEdge(int ia, int ib){
+		addEdge( ia, ib, 0 );
+	}
+	public synchronized void addEdge(int ia, int ib, int cost){
 		Vertex<E> a = addVertex(ia);
 		Vertex<E> b = addVertex(ib);
 		Edge<E> e1 = new Edge<E>( a, b );
@@ -257,9 +261,12 @@ public class AdjacencyListGraph<E> extends Graph<E>{
 		//	if( b.edges.size() == 1 ) connected_vertices++;
 	}
 	public synchronized void addEdge(E a, E b){
+		addEdge( a, b, 0 );
+	}
+	public synchronized void addEdge(E a, E b, int cost){
 		Vertex<E> va = addVertex( a );
 		Vertex<E> vb = addVertex( b );
-		Edge<E> e1 = new Edge<E>( va , vb ); // can have multiple edges between edges// so don't look up
+		Edge<E> e1 = new Edge<E>( va , vb, cost ); // can have multiple edges between edges// so don't look up
 		__addEdge( e1 );
 	}
 	/**Internal addEdge which doesn't create new objects*/

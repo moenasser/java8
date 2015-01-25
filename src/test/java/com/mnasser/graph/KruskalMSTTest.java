@@ -130,15 +130,35 @@ public class KruskalMSTTest {
 	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void randomTest(){
-		int N = 100_000; //3_000_000; // 1_000_000;
-		Graph G = Graph.makeRandomGraph( N  );
-		System.out.println( G.toInfoLine() );
+		int N = 300_000; // 1_000_000;
 		
-		Graph T = KruskalMST.findMSTNaive( G );
-		Graph T2  = KruskalMST.findMSTLazyUnionByRank( G );
+		Graph T = null;// , T2 = null;
 		
-		System.out.println( T.toInfoLine() );
-		System.out.println( T2.toInfoLine() );
+		Graph G =  Graph.makeRandomGraph( N  );
+		System.out.println( );
+		//System.gc();
+		
+		//	long g2Copy = System.nanoTime();
+		//	Graph G2 = Graph.copyOf( G ); //Graph.makeRandomGraph( N  );  //System.out.println( );
+		//	
+		//	System.out.printf("CopyOf G took : %sms\n\n", ((System.nanoTime()-g2Copy)/1_000_000.0) );
+		//	
+		//	
+		//	for( int ii = 0 ; ii < 10 ; ii++) {
+		//		T2  = KruskalMST.findMSTLazyUnionByRank( G2 );
+		//	}
+		//	System.out.println( "Lazy Union by Rank : " + T2.toInfoLine() + "\n");
+		
+		int n = 10;
+		for( int ii=0; ii < n ; ii ++) {
+			T = KruskalMST.findMSTLazyUnionByRank( G );
+			if ( ii < n-1 ){
+				T = null; // help out the gc
+				//System.gc();
+			}
+		}
+		System.out.println( "Union Find result  : " + T.toInfoLine() + "\n");
+		
 		
 		long total_cost = 0 ;
 		long timeOld = 0, timeStream = 0, timeParallelStream = 0;
@@ -152,7 +172,7 @@ public class KruskalMSTTest {
 				total_cost += e.cost();
 			timeOld += System.nanoTime() - start;
 			
-			start = System.nanoTime();     // faster for N between [10K-100K]. Break even ~75k. Slower after 
+			start = System.nanoTime();     // stream is faster for N between [10K-100K]. Break even ~75k. Slower after 
 			total_cost = T.getEdges().stream().mapToInt( e -> ((Edge) e).cost() ).sum();
 			timeStream += System.nanoTime() - start;
 			
