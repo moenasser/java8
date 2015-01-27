@@ -40,9 +40,12 @@ public class IntMap<V> implements Map {
 	private int bucketSize  = 4; // size of each bucket
 	private int bucketCount = 32; // total number of buckets
 	private int slots = bucketSize * bucketCount;
-	// our actual backing array where we throw things into  
+	
 	@SuppressWarnings("unchecked")
+	// our actual backing array where we throw things into  
+	// notice, it's not actual buckets - rather a range of entries in an array
 	private Entry<V>[] buckets = new Entry[ slots ];
+	
 	// how many entries in each bucket have been used
 	private int[] bucketUsage = new int[bucketCount];
 	private int entries = 0;  // current entries into this map 
@@ -50,9 +53,9 @@ public class IntMap<V> implements Map {
 	@SuppressWarnings({"unchecked"})
 	public static class Entry<V>{
 		final int key;
-		V value;
+		final V value; // optional parameterized value to hold
 		
-		Entry(int k)       {  key = k ; }
+		Entry(int k)       {  key = k; value = null; }
 		Entry(int k, V val){  key = k; value = val; }
 		
 		public boolean equals(int other){
@@ -63,7 +66,8 @@ public class IntMap<V> implements Map {
 			if( this == obj ) return true;
 			if( obj instanceof Entry<?> ){
 				Entry<V> e = (Entry<V>)obj;
-				return this.key == e.key;
+				if (this.key  != e.key ) return false;
+				if (this.value != null ) return this.value.equals(e.value);
 			}
 			return false;
 		}
@@ -74,6 +78,7 @@ public class IntMap<V> implements Map {
 		}
 	}
 	
+	// figures out which 'bucket' this key would hash into
 	private int bucket(int key){
 		int mod = key % bucketCount;
 		if ( mod < 0 ) mod = mod + bucketCount; // corrected modulus
