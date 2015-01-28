@@ -57,6 +57,7 @@ public abstract class Graph<V> {
 	public abstract boolean   hasEdge  (Edge<V> e);
 	public abstract boolean   hasEdge  (Vertex<V> a, Vertex<V> b);
 	public abstract boolean   hasEdge  (int a, int b);
+	public abstract boolean   hasEdge  (V a, V b);
 	
 	/**Returns the first Vertex with element equal to {@code v}. 
 	 * @throws NullPointerException If {@code v} is null*/

@@ -237,7 +237,7 @@ public class AdjacencyListGraph<E> extends Graph<E>{
 	public synchronized void addEdge(int ia, int ib, int cost){
 		Vertex<E> a = addVertex(ia);
 		Vertex<E> b = addVertex(ib);
-		Edge<E> e1 = new Edge<E>( a, b );
+		Edge<E> e1 = new Edge<E>( a, b, cost );
 		__addEdge( e1 );
 		//	a.edges.add(e1);
 		//	b.edges.add(e1);
@@ -293,6 +293,12 @@ public class AdjacencyListGraph<E> extends Graph<E>{
 		return (_vertMap.containsKey(a) && _vertMap.containsKey(b)
 			&& _vertMap.get(a).hasNeighbor(_vertMap.get(b)));
 	}
+	@Override
+	public boolean hasEdge(E a, E b){
+		return ( _elementMap.containsKey(a) && _elementMap.containsKey(b)
+			&& _elementMap.get(a).hasNeighbor(_elementMap.get(b)) ); 
+	}
+	
 	
 	@Override
 	public boolean hasVertex(int id){

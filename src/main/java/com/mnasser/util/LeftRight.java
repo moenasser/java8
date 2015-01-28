@@ -19,4 +19,7 @@ public class LeftRight<L,R> {
 		right = r;
 	}
 
+	public static <L,R> LeftRight<L,R> lr(L l, R r) {
+		return new LeftRight<L,R>(l,r);
+	}
 }
