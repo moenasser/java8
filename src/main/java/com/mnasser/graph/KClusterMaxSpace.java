@@ -1,7 +1,5 @@
 package com.mnasser.graph;
 
-import java.util.Scanner;
-
 import com.mnasser.graph.Graph.Edge;
 import com.mnasser.graph.Graph.Vertex;
 import com.mnasser.graph.KruskalMST.UnionDecision;

@@ -1,6 +1,7 @@
 package com.mnasser;
 
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -272,4 +273,204 @@ public class LotsOfInterviewQuestions {
 		
 		recursion( running_total, current_adder + 1 ); 
 	}
+	
+	
+	
+	@Test
+	public void testUtopianTree(){
+		utopianTree(0);
+		utopianTree(1);
+		utopianTree(2);
+		utopianTree(3);
+		utopianTree(4);
+		utopianTree(5);
+		utopianTree(6);
+		Assert.assertEquals( 1   , grow(0 ) );
+		Assert.assertEquals( 2   , grow(1 ) );
+		Assert.assertEquals( 3   , grow(2 ) );
+		Assert.assertEquals( 6   , grow(3 ) );
+		Assert.assertEquals( 7   , grow(4 ) );
+		Assert.assertEquals( 14  , grow(5 ) );
+		Assert.assertEquals( 15  , grow(6 ) );
+		Assert.assertEquals( 30  , grow(7 ) );
+		Assert.assertEquals( 31  , grow(8 ) );
+		Assert.assertEquals( 62  , grow(9 ) );
+		Assert.assertEquals( 63  , grow(10) );
+		Assert.assertEquals( 126 , grow(11) );
+	}
+	public static void utopianTree(int cycles){
+		System.out.println(cycles + " -> " + grow(cycles));
+	}
+	
+	/** O(1) time*/
+	public static int grow(int cycles){
+		int temp = (cycles % 2 == 0)? cycles >> 1 : (cycles + 1) >> 1; // odd number is dealt like the even number ahead of it
+		// temp +1 is how many bits we need to shift to the right while adding ones to it.
+		int res = 1 << (temp); // we want to right shift and pad res w/ 1's a total of 'temp+1' bits 
+		res += (res-1); // fill in all the 0's on the right of our left-shifted 1. 
+		return (cycles % 2 == 0)? res : res - 1; // if we were dealing w/ odd cycles subtract 1
+		
+		/* This function should return the following mapping
+		        0 = 1 // only 1st bit on
+		        1 = 2
+		        2 = 3  // both 1&2 bit on
+		        3 = 6
+		        4 = 7  // 1, 2 & 3rd bits on 
+		        5 = 14
+		        6 = 15 // 1 - 4th bits on
+		        7 = 30
+		        8 = 31 // 1 - 5th bits on
+		        9 = 62
+		        10 = 63 // 1 - 6th bits on
+		        11 = 126
+		        12 = 127 // 1 - 7th bits on
+		        13 = 254 
+		        14 = 255 // 1 - 8th bits on
+		 */
+	}
+	
+	@Test
+	public void testMaximizeXOR(){
+		Assert.assertEquals( 15 , maximizeXOR(1, 10) );
+		Assert.assertEquals( 7 , maximizeXOR(10,15) );
+		Assert.assertEquals( 16383 , maximizeXOR(356,9852) );
+	}
+	
+	public static int maximizeXOR(final int L, final int  R){
+		if ( L == R ) return 0;
+		// start with the right most bits.
+		// as we walk up the number of bits in both numbers we should be able
+		// to construct 2 numbers w/ *alternating* 1's or 0's in order to maximize the XOR of said 2 numbers.
+		// if the two bits at the nth position are already different, do nothing; 
+		// if they are the same, see if you can add 1 to the lower number or subtract 1 from the larger.
+		
+		int bit = 1;
+		int max_xor = 0;
+		while( bit <= R ){
+			if ( (L & bit) != (R & bit) ){
+				max_xor += bit;
+			}
+			else{
+				// can we add 1 to the lower? or vise versa?
+				if ( L + bit <= R  ||  R - bit >= L ){
+					max_xor += bit; // this is also acceptable.
+				}
+			}
+			// else we can' do anything w/ this bit
+			bit = bit << 1; 
+		}
+		
+		return max_xor;
+	}
+	
+	@Test
+	public void testAlternateChars(){
+		Assert.assertEquals( 3  , alternateChars( "AAAA" )  );
+		Assert.assertEquals( 4  , alternateChars( "BBBBB" )  );
+		Assert.assertEquals( 0  , alternateChars( "ABABABAB" )  );
+		Assert.assertEquals( 0  , alternateChars( "BABABA" )  );
+		Assert.assertEquals( 4  , alternateChars( "AAABBB" )  );
+	}
+	
+	
+	public static int alternateChars(final String word){
+		int deletions = 0;
+		int idx = 0;
+		char previous_c = (char) -1;
+		do {
+			char c = word.charAt(idx);
+			if ( previous_c != (char) -1  &&  previous_c == c )
+				deletions ++;
+			
+			previous_c = c;
+			idx++;
+		}
+		while( (idx < word.length()) );
+		
+		return deletions;
+	}
+	
+	@Test
+	public void testFindSmallestMax(){
+		Assert.assertEquals( 20 , findSmallestMaximum(new int[]{10,100,300,200,1000,20,30}, 3) );
+		Assert.assertEquals( 3 , findSmallestMaximum(new int[]{1,2,3,4,10,20,30,40,100,200} , 4) );
+		Assert.assertEquals( 2 , findSmallestMaximum(new int[]{10,20,30,100,101,102} , 3) );
+
+	}
+	
+	/**
+	 * Given a set of numbers, finds which group of K elements within nums 
+	 * having the smallest difference between the smallest and largest elements of K.  
+	 *  
+	 * @param nums array of numbers to find the smallest set of K members that have
+	 * the smallest distance between them.
+	 * @param K size of subgroup
+	 * @return the smallest distance between any grouping of K members of nums*/
+	public static int findSmallestMaximum(int[] nums, int K){
+		// we will use the space between consecutive sorted numbers as a sort of 'edge cost'
+		// between two nodes on a singly-linked graph
+		Arrays.sort(nums);
+		
+		int[] edges = new int[ K - 1 ]; // our differences
+		int smallest_difference = -1;
+		int current_diff = 0;
+		
+		for( int ii=0; ii< nums.length - 1; ii++  ){
+			
+			int diff = nums[ii + 1] - nums[ii];
+			
+			if ( ii < edges.length - 1 ){
+				
+				edges[ ii ] = diff;
+				
+			}else{
+				// we have potential sub groups. Keep track of our total edge costs
+				if ( smallest_difference == -1 ){
+					edges[ ii % edges.length ] = diff;
+					current_diff =  Arrays.stream(edges).sum();
+					smallest_difference = current_diff;
+				}
+				else{
+					// this is a new diff, so let's push out the old k and put in the new one
+					current_diff -= edges[ ii % edges.length ];
+					current_diff += diff;
+					
+					// is the new max distance smaller than our reigning small champion?
+					if ( current_diff < smallest_difference )
+						smallest_difference = current_diff; // we have a new lower total edge cost
+					
+					// move our edge window along 
+					//edges = Arrays.copyOfRange(edges, 1, edges.length);
+					edges[ ii % edges.length ] = diff; 
+				}
+			}
+		}
+		
+		return smallest_difference;
+	}
+
+	@Test
+	public void testIsFibonacci(){
+		Assert.assertTrue( isFib(0) );
+		Assert.assertTrue( isFib(1) );
+		Assert.assertTrue( isFib(34) );
+		
+		Assert.assertFalse( isFib( Integer.MAX_VALUE ) );
+		
+	}
+	
+    public static boolean isFib(final long f){
+        if( f == 0 || f == 1 ) return true;
+        long r1 = 1 , r2 = 1 , c = 0;
+        do {
+            c = r1 + r2;
+            //System.out.println( c );
+            r1 = r2;
+            r2 = c;
+        }while( c < f );
+            
+        return ( c == f );
+    }
+	
 }
+
