@@ -458,7 +458,8 @@ public class LotsOfInterviewQuestions {
 		Assert.assertFalse( isFib( Integer.MAX_VALUE ) );
 		
 	}
-	
+
+	/**Returns true if given number is along the Fibonacci sequence or not.*/
     public static boolean isFib(final long f){
         if( f == 0 || f == 1 ) return true;
         long r1 = 1 , r2 = 1 , c = 0;
@@ -471,6 +472,60 @@ public class LotsOfInterviewQuestions {
             
         return ( c == f );
     }
-	
+    
+    
+    @Test
+    public void testCavities(){
+    	int[][] nn = new int[][]{
+    		{1 , 1 ,1 , 1 },
+    		{1 , 9 ,8 , 1 }, 
+    		{1 , 8 ,9 , 1 },
+    		{1 , 1 ,1 , 1 }
+    	};
+    	
+    	findCavity( nn );
+    	
+    }
+    
+    static class IJ{
+    	final int ii, jj;
+    	IJ( int ii , int jj ) { this.ii = ii; this.jj = jj; }
+    }
+    public static /*List<IJ>*/ void findCavity(int[][] nn){
+    	if (nn == null || nn.length < 3 ) return; //Collections.EMPTY_LIST;
+    	
+    	for( int ii = 0; ii < nn.length ; ii++ ){
+    		for( int jj = 0; jj < nn.length ; jj ++ ){
+    			
+    			if ( ii > 0 &&  ii < nn.length -1  && jj > 0 && jj < nn.length - 1  )
+    			{
+	    			int depth = nn[ii][jj];
+	    			if (  // check our surroundings. If we aren't strictly greater than all, skip
+	    				 depth > nn[ii-1][jj] &&
+	    				 depth > nn[ii][jj-1] &&
+	    				 depth > nn[ii+1][jj] &&
+	    				 depth > nn[ii][jj+1]   
+	    				) 
+	    			{
+	    				// we have a deeper depth than our surroundings. Mark this.
+	    				// todo - set as "-1", or return an (x,y) coordinate 
+	    				nn[ii][jj] = Integer.MAX_VALUE;
+	    				System.out.print( 'X' );
+	    			}
+	    			else{
+	    				System.out.print( nn[ii][jj] );
+	    			}
+    			}
+    			else{
+    				// borders
+    				System.out.print( nn[ii][jj] );
+    			}
+    		}
+    		System.out.println(); // add a new line for each row
+    	}
+    }
+    
+    
+    
 }
 

@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  */
 public abstract class Graph<V> {
 
-	/**Factory constructor**/
+	/**Factory constructor for generic graph**/
 	public static <X> Graph<X> getInstance(){
 		return new AdjacencyListGraph<X>();
 	}

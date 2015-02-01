@@ -217,7 +217,7 @@ public class KruskalMST<X> {
 		/**The legacy implementation before factoring out this step of the algorithm.
 		 * This does the expected union or lazy union operation and returns an instruction
 		 * to continue. */
-		public static UnionDecision DEFAULT_DECISION = (e, c1 , c2, byRank, g) -> {
+		public static UnionDecision DEFAULT_DECISION = (e, c1 , c2, byRank, g) -> { // mmm ... lambdas
 			if( byRank )
 				KruskalMST._lazyUnionByRank( c1, c2 );
 			else
