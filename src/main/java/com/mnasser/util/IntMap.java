@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 /**
  * A hash map that uses primitive {@code int}s as keys
- * to save on the over head of working with Integer objects
+ * to save on the overhead of working with Integer objects
  *
  * @param <V> The type of Values to map to.
  * @author Moe
