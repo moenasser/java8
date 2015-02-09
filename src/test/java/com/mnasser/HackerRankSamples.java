@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -328,43 +329,75 @@ public class HackerRankSamples {
 	
 	
 	
-	
-    public static class Node {
-        List<Node> edges = null;
-        final int data;
-        Node parent = null;
-        public Node(int data){ this.data = data; }
+	/**
+	 * A node in a graph or tree.
+	 * </p>
+	 * Can have children and or a parent.
+	 *
+	 * @param <T> The type of element each node is wrapping. 
+	 * 		Acts as unique identifier and equality measure
+	 */
+    public static class Node<T> {
+        private List<Node<T>> edges = null; // our children - not needed here, force of habit
+        final T data; // our unique name/identifier. (parameterized)
+        private Node<T> parent = null; // all children have a parent. (Root does not)
+        public Node(T data){ this.data = data; }
+        private int depth = 0; // cheat - to save on our recursion later
         
-        public void addNode(Node child){
-            if ( edges == null ) edges = new ArrayList<Node>();
+        /**
+         * Adds a child node beneath this parent.
+         * @param child
+         */
+        public void addChild(Node<T> child){
+            if ( edges == null ) edges = new ArrayList<Node<T>>();
             edges.add( child );
             child.parent = this;
         }
+        /**
+         * Returns true if this node has children and this child is one of them
+         * @param child Child to check maternity for
+         * @return true if this is our daughter or not.
+         */
+        public boolean hasChild(Node<T> child){
+        	return (edges==null) ? false : edges.contains( child ); //O(n)
+        }
+        /**
+         * Returns true if this node is strictly an ancestor of child.
+         * Meaning you are not the ancestor of yourself.
+         * 
+         * @param child The child to check if we are the mother, grandmother, greatgrandmother ...etc .. of.
+         * @return True if we are at least the parent of this child. False otherwise.
+         */
+        public boolean isAncestorOf(Node<T> child){
+        	if( child == null || child.parent == null ) return false;
+        	return (child.parent == this) || isAncestorOf(child.parent);
+        }
         
-        public int hashCode(){ return data; }
+        public int hashCode(){ return data.hashCode(); }
         public boolean equals(Object o){
             if ( o == null ) return false;
             if ( this == o ) return true;
-            Node no = (Node)o;
-            return this.data == no.data;
+            @SuppressWarnings({ "rawtypes" })
+			Node no = (Node)o;
+            return this.data.equals(no.data);
         }
         
         public String toString(){
-            StringBuilder sb = new StringBuilder();
-            _toString( sb, 0 );
-            return sb.toString();
-            //return data + ((edges==null)? "" : "->\n\t" + edges );
+        	//return data + ((edges==null)? "" : (Arrays.toString(edges.toArray())) );
+		    StringBuilder sb = new StringBuilder();
+		    _toString( sb, 0 );
+		    return sb.toString();
         }
         private void _toString(StringBuilder sb, int depth){
             String tabs = "";
-            for( int i = 0; i< depth; i ++ ){
+            for( int i = 0; i < depth; i ++ ){
                 tabs = tabs + '\t' ;
             }
             sb.append( tabs );
             sb.append( data );
             if ( edges == null ) return;
             sb.append(" -> \n");
-            for( Node child : edges ){
+            for( Node<T> child : edges ){
                 child._toString( sb , depth + 1 );
                 sb.append( "\n" );
             }
@@ -372,23 +405,149 @@ public class HackerRankSamples {
     }
     
     
+    public static <T> void rankTree(Node<T> root){
+    	rankTree( root,  0 );
+    }
+    private static <T> void rankTree(Node<T> parent, int depth){
+    	parent.depth = depth;
+    	if ( parent.edges != null )
+    		for( Node<T> n : parent.edges )
+    			rankTree( n , depth + 1 );
+    }
 	
-	@SuppressWarnings("unused")
-	private static int recurseDS(Node n , int depth){
+    /**Maximum number of children beneath this node*/
+	public static <T> int recurseDS(Node<T> n , int depth){
 		if ( n == null ) return depth - 1;
         if ( n.edges == null || n.edges.size() == 0 ) return depth;
         int max = 0; 
-        for ( Node child : n.edges ){
+        for ( Node<T> child : n.edges ){
             max = Math.max( max , recurseDS(child , depth + 1 ) );
         }
 		return max;
 	}
 	
-    private static Node getRoot( Collection<Node> nodes ){
-        List<Node> roots = nodes.stream().filter( n -> n.parent == null ).collect(Collectors.toList());
+	/**Gets the root of a collection of nodes. The root being the one node w/ no parent*/
+    public static <T> Node<T> getRoot( Collection<Node<T>> nodes ){
+        List<Node<T>> roots = nodes.stream().filter( n -> n.parent == null ).collect(Collectors.toList());
         if ( roots.size() != 1 ) // problem?
         	throw new RuntimeException("This tree has MULITPLE ROOTS!");
         return roots.get(0);
+    }
+    
+    
+    @Test
+    public void testAMPLIFYquestion(){
+    	Map<String,Node<String>> tree = new HashMap<String, Node<String>>(0); 
+    	
+    	String[] names = "Clare, Gloria, Hazel".split("\\,\\s*");
+    	System.out.println(Arrays.toString(names));
+    	addToTree( tree, names );
+    	
+    	names = "Ann, Betty, Clare".split("\\,\\s*");
+    	System.out.println(Arrays.toString(names));
+    	addToTree( tree, names );
+    	
+    	
+    	names = "Betty, Donna, Elizabeth, Flora".split("\\,\\s*");
+    	System.out.println(Arrays.toString(names));
+    	addToTree( tree, names );
+    	
+
+    	names = "Hazel, Ingrid".split("\\,\\s*");
+    	System.out.println(Arrays.toString(names));
+    	addToTree( tree, names );
+    	
+    	names = "Ingrid, Jezebel".split("\\,\\s*");
+    	System.out.println(Arrays.toString(names));
+    	addToTree( tree, names );
+    	
+    	names = "Donna, Karen".split("\\,\\s*");
+    	System.out.println(Arrays.toString(names));
+    	addToTree( tree, names );
+    	
+    	//System.out.println( tree );
+    	
+    	Node<String> root = getRoot( tree.values() );
+    	rankTree( root );
+    	
+    	//System.out.println(root);
+    	
+    	Assert.assertEquals( "Clare" , findAntecedant(tree, "Hazel", "Gloria").data);
+    	Assert.assertEquals( "Clare" , findAntecedant(tree, "Hazel", "Clare").data);
+    	Assert.assertEquals( "Ann" , findAntecedant(tree, "Hazel", "Flora").data);
+    	Assert.assertEquals( "Ann" , findAntecedant(tree, "Hazel", "Betty").data);
+    	Assert.assertEquals( "Ann" , findAntecedant(tree, "Hazel", "Ann").data);
+    	Assert.assertEquals( "Hazel" , findAntecedant(tree, "Hazel", "Hazel").data);
+    	Assert.assertEquals( "Clare" , findAntecedant(tree, "Clare", "Jezebel").data);
+    	Assert.assertEquals( "Ann" , findAntecedant(tree, "Karen", "Jezebel").data);
+    	//Node<String> child1 = "Hazel";
+    	//Node<String> child2 = "Gloria";
+    }
+    
+    /** Convenience method to help build above tree */
+    private static void addToTree(Map<String,Node<String>> tree, String[] names){
+		Node<String> mom = tree.get( names[0] );
+    	mom = (mom==null) ? new Node<String>(names[0]) : mom;
+    	tree.put( mom.data , mom );
+    	
+    	for( int ii = 1; ii < names.length; ii ++){
+    		Node<String> child = tree.get( names[ii] );
+    		child = (child==null)? new Node<String>(names[ii]) : child;
+    		mom.addChild( child );
+    		tree.put( child.data , child );
+    	}
+        
+    }
+    
+    
+    public static <T> Node<T> findAntecedant(Map<T, Node<T>> tree, String c1, String c2 ){
+    	Node<T> child1 = tree.get( c1 );
+    	Node<T> child2 = tree.get( c2 );
+    	return findAntecedant(child1, child2);
+    }
+    /**
+     * Recursively looks up the family tree looking for closest ancestor. 
+     * Ancestor could be either child if one is 
+     * @param child1
+     * @param child2
+     * @return
+     */
+    public static <T> Node<T> findAntecedant(Node<T> child1, Node<T> child2){
+    	// me myself I
+    	if ( child1 == child2 ){
+    		return child1;
+    	}
+    	// same level ? check if siblings
+    	if ( child1.depth == child2.depth && child2.parent == child1.parent ){
+    		return child1.parent;
+    	}
+    	// root?
+    	if ( child1.depth == 0 ) return child1;
+    	if ( child2.depth == 0 ) return child2;
+    	
+		//	// parents
+		//	if ( child1.parent == child2 ){
+		//		return child2;
+		//	}
+		//	if ( child2.parent == child1 ){
+		//		return child1;
+		//	}
+		//	// grandparents 
+		//	if ( child1.parent != null && child2.hasChild(child1.parent) ){
+		//		return child2;
+		//	}
+		//	if ( child2.parent != null && child1.hasChild(child2.parent) ){
+		//		return child1;
+		//	}
+    	
+    	// higher up? check direct ancestry
+    	if ( child1.depth < child2.depth   &&   child1.isAncestorOf(child2) ) return child1;
+    	if ( child2.depth < child1.depth   &&   child2.isAncestorOf(child1) ) return child2;
+    	
+    	// totally different branches of the family. recurse
+    	Node<T> parent1 = ( child1.parent == null ) ? child1 : child1.parent;
+    	Node<T> parent2 = ( child2.parent == null ) ? child2 : child2.parent;
+    	return findAntecedant(parent1, parent2);
     }
     
     
@@ -427,26 +586,26 @@ public class HackerRankSamples {
             
      ******/
     
-    private void addToTree(Map<Integer,Node> tree, int _id1 , int _id2){
+    private void addToTree(Map<Integer,Node<Integer>> tree, int _id1 , int _id2){
         int id1 = Math.min( _id1, _id2 ); // enforce children having smaller IDs
         int id2 = Math.max( _id1, _id2 ); // else it's free fall what is child/parent
         
-        Node n1 = tree.get( id1 ); 
+        Node<Integer> n1 = tree.get( id1 ); 
         if ( n1 == null ){
-            n1 = new Node( id1 );
+            n1 = new Node<Integer>( id1 );
             tree.put( id1, n1 );
         }
-        Node n2 = tree.get( id2 ); 
+        Node<Integer> n2 = tree.get( id2 ); 
         if ( n2 == null ){
-            n2 = new Node( id2 );
+            n2 = new Node<Integer>( id2 );
             tree.put( id2, n2 );
         }
-        n1.addNode( n2 );
+        n1.addChild( n2 );
     }
     
-    public static int getMinEvenTreeCuts(Map<Integer,Node> tree){
+    public static <T> int getMinEvenTreeCuts(Map<Integer,Node<T>> tree){
             // find out how many children are in each branch beneath root
-            Node root = tree.get( 1 ); // wasn't defined if this is the root or not
+            Node<T> root = tree.get( 1 ); // wasn't defined if this is the root or not
             root = ( root.parent == null ) ? root : getRoot( tree.values() );
             
             //System.out.println( root );
@@ -463,7 +622,7 @@ public class HackerRankSamples {
             }
             ****/
             
-            for( Node child : root.edges){
+            for( Node<T> child : root.edges){
                 //int children = 
                 Tuple<Integer,Integer> res = pruneEven( child , 0 );
                 cuts += res.cuts;
@@ -502,12 +661,12 @@ public class HackerRankSamples {
     }
     
     // given a NON-root node, see if we can easily prune even sub-trees
-    private static Tuple<Integer,Integer>  pruneEven(Node n, int cuts){
+    private static <T> Tuple<Integer,Integer>  pruneEven(Node<T> n, int cuts){
         if ( n == null ) return Tuple.lr( 0 , cuts );
         if ( n.edges == null || n.edges.size()==0 ) return Tuple.lr( 1 , cuts );
         int finalChildren = 0;
-        List<Node> toRemove = new ArrayList<Node>();
-        for ( Node child : n.edges ) {
+        List<Node<T>> toRemove = new ArrayList<Node<T>>();
+        for ( Node<T> child : n.edges ) {
             
             Tuple<Integer, Integer> res = pruneEven( child , cuts );
             cuts = res.cuts;
@@ -521,7 +680,7 @@ public class HackerRankSamples {
                 finalChildren += res.children;
             }
         }
-        for( Node remove : toRemove ) { // not necessary?
+        for( Node<T> remove : toRemove ) { // not necessary?
             n.edges.remove( remove );
             remove.parent = null ;
         }
@@ -536,7 +695,7 @@ public class HackerRankSamples {
 	
 	@Test
 	public void testEvenTree(){
-		Map<Integer,Node> tree = new HashMap<Integer,Node>();
+		Map<Integer,Node<Integer>> tree = new HashMap<Integer,Node<Integer>>();
 		addToTree(tree, 1, 2);
 		addToTree(tree, 3 , 1 );
 		addToTree(tree, 4 , 3 );
@@ -554,7 +713,7 @@ public class HackerRankSamples {
 	
 	@Test
 	public void testEvenBiggerTree(){
-		Map<Integer,Node> tree = new HashMap<Integer,Node>();
+		Map<Integer,Node<Integer>> tree = new HashMap<Integer,Node<Integer>>();
 		addToTree(tree, 2  , 1);
 		addToTree(tree, 3  , 1);
 		addToTree(tree, 4  , 3);
@@ -582,6 +741,167 @@ public class HackerRankSamples {
 	
 	
 	
+	
+	
+	
+    private static class ClusterBuilder{
+        // connected components
+        private Map<Integer , Set<Integer>> cc = new HashMap<Integer,Set<Integer>>();
+        private List<Set<Integer>> clusters = new ArrayList<Set<Integer>>();
+        private int singletons = 0;
+        
+        public void addSingleton( int single ){
+        	if ( ! cc.containsKey(single) ){
+        		singletons++;
+        	}
+        }
+        public void inferSingletons( int maxIndividuals ){
+        	int clustered_members = cc.keySet().size(); // how many in clusters
+        	int single = maxIndividuals - clustered_members;// rest are singletons
+        	
+        	singletons = single; // we don't care about those other singletons
+        }
+
+        
+        public void add(int a, int b){
+            Set<Integer> s = cc.get( a );
+            if( s == null ) s = cc.get( b );
+            else{
+            	Set<Integer> s2 = cc.get( b );
+            	if ( s2 != null && s2 != s ){
+            		s.addAll( s2 );
+            		clusters.remove( s2 );
+            		s2 = null;
+            	}
+            }
+            if( s == null ){
+            	s =  new HashSet<Integer>();
+            	clusters.add( s ); // unique set of clusters
+            }
+            
+            s.add( a );  s.add( b );
+            for( int x : s ){
+            	cc.put( x , s ); // re-map everyone
+            }
+        }
+        
+        public int countClusters(){
+            return clusters.size();
+        }
+        
+        public void clear(){
+        	cc.clear();
+        	clusters.clear();
+        	singletons = 0;
+        }
+        
+		//    public Collection<Set<Integer>> getClusters(){
+		//        return clusters;
+		//    }
+        
+        public int[] getClusterSizes(){
+            int[] sizes = new int[countClusters()];
+            int ii = 0;
+            for ( int size : clusters.stream().map( x -> x.size() ).collect(Collectors.toList()) ){
+            	sizes[ii++] = size;
+            }
+            return sizes;
+        }
+        
+        public long calcMyMax2pairCombos(){
+        	return calcMax2pairCombos( getClusterSizes() , singletons);
+        }
+        public static long calcMax2pairCombos(int[] sizes){
+        	return calcMax2pairCombos(sizes, 0);
+        }
+        public static long calcMax2pairCombos(int[] sizes, int singletons){
+        	long sum = (sizes.length==0) ? 0 : sizes[0];
+        	// add up all group pairings
+        	long res = 0;
+        	for( int ii = 0; ii < sizes.length - 1; ii ++ ){
+        		sum += sizes[ii + 1];
+        		for( int jj = ii+1; jj < sizes.length; jj++){
+        			res += sizes[ii] * sizes[jj];
+        		}
+        	}
+        	
+        	// for the singleton groups, they effectively add copies of the running sum
+        	res += (singletons < 0) ? 0 : sum * singletons;
+        	
+        	// the singletons amongts themselves make a Summation pattern
+        	// 1, 1, 1, 1, 1,  =  4 + 3 + 2 + 1 = sum( n-1 ==> 1 );
+        	for( int s = singletons - 1; s > 0; s-- ){
+        		res += s;
+        	}
+        	
+            return res;
+        }
+    }
+    
+	@Test
+	public void testClusterBuilder(){
+		int[] foo = new int[]{ 1, 2 , 3, 4 };
+		Assert.assertEquals( 35,  ClusterBuilder.calcMax2pairCombos(foo, 0) );
+		
+		foo = new int[]{ 2 , 3, 4, 5 };
+		Assert.assertEquals( 71 , ClusterBuilder.calcMax2pairCombos(foo) );
+		
+		ClusterBuilder cb = new ClusterBuilder();
+		cb.add( 0, 1);
+		cb.add( 2, 3);
+		
+		Assert.assertEquals( 4, cb.calcMyMax2pairCombos() );  // 2 * 2
+		
+		cb.add( 4, 3);
+		Assert.assertEquals( 6, cb.calcMyMax2pairCombos() );  // 2 * 3 
+		
+		cb.add( 5, 1);
+		Assert.assertEquals( 9, cb.calcMyMax2pairCombos() );  // 3 * 3
+		
+		cb.add( 6, 7); 
+		Assert.assertEquals( 21, cb.calcMyMax2pairCombos() );  // {3, 3, 2} = 3*3  + 3*2 + 3*2
+	
+		
+		cb.clear();
+		
+		cb.add( 0 , 2 );
+		cb.add( 1 , 8 );
+		cb.add( 1 , 4 );
+		cb.add( 2 , 8 );
+		cb.add( 2 , 6 );
+		cb.add( 3 , 5 );
+		cb.add( 6 , 9 );
+		// (0,1,2,8,4,6,9) (3,5)
+		Assert.assertEquals( 14, cb.calcMyMax2pairCombos() );  // {7, 2} = 7*2
+
+		cb.addSingleton( 7 ); // (0,1,2,8,4,6,9) (3,5)  (7)
+		Assert.assertEquals( 23, cb.calcMyMax2pairCombos() );  // {7, 2, 1} = 7*2 + 7*1 + 2*1 
+		
+		
+		cb.clear();
+		cb.add( 1, 2 );
+		cb.add( 3, 4 );
+		cb.inferSingletons( 100_000 );
+		
+		Assert.assertEquals( 4999949998L, cb.calcMyMax2pairCombos() );  // {7, 2, 1} = 7*2 + 7*1 + 2*1 
+		
+	}
+	
+	
+	public static int[] move_column(int[] table, int from, int to){
+		if ( table.length - 1  < from) throw new IndexOutOfBoundsException(from+" > "+(table.length-1));
+		if ( from == to  ||  table[from] == table[to] ) 
+			return table;
+		table[from] ^= table[to];
+		table[to] ^= table[from];
+		table[from] ^= table[to];
+		return table;
+	}
+	
+	@Test
+	public void testXOR(){
+		System.out.println( Arrays.toString( move_column(new int[]{1, 2, 3, 4} , 3 ,1) ));
+	}
 	
 	
 }
